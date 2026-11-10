@@ -33,7 +33,7 @@ jobs:
         with:
           node-version: 22.23.2
 
-      - name: Syntax checks
+      - name: Syntax and tests
         run: |
           set -euo pipefail
           npm run check
@@ -42,7 +42,7 @@ jobs:
       - name: Start portal and smoke-test HTTP endpoints
         run: |
           set -euo pipefail
-          HOST=127.0.0.1 PORT=4189 ADMIN_TOKEN=ci-smoke-token node src/server.js > "$RUNNER_TEMP/portal.log" 2>&1 &
+          HOST=127.0.0.1 PORT=4189 PORTAL_DATA_DIR="$RUNNER_TEMP/portal-data" PORTAL_COOKIE_SECURE=false node src/server.js > "$RUNNER_TEMP/portal.log" 2>&1 &
           SERVER_PID=$!
           cleanup() {
             kill "$SERVER_PID" 2>/dev/null || true
