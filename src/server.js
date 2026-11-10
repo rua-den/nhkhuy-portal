@@ -1,5 +1,5 @@
 'use strict';
-const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const {openDatabase}=require('./db/database');
 const {importLegacyServices}=require('./db/import-legacy-services');
 const {createAuth}=require('./auth/service');
@@ -16,18 +16,18 @@ async function body(req){let raw='',size=0;for await(const chunk of req){size+=c
 function sameOrigin(req){const origin=req.headers.origin;if(!origin)return true;try{return new URL(origin).host===req.headers.host}catch{return false}}
 function csrf(req,user){return sameOrigin(req)&&auth.csrfValid(user,req.headers['x-csrf-token'])}
 function listServices(){return db.prepare('SELECT metadata_json FROM services WHERE enabled=1 ORDER BY name COLLATE NOCASE').all().map(row=>JSON.parse(row.metadata_json)).map(({id,name,description,url,category,icon})=>({id,name,description,url,category,icon}))}
-function allServices(){return db.prepare('SELECT metadata_json FROM services ORDER BY name COLLATE NOCASE').all().map(row=>JSON.parse(row.metadata_json))}
+function allServices(){return db.prepare('SELECT metadata_json,enabled FROM services ORDER BY name COLLATE NOCASE').all().map(row=>({...JSON.parse(row.metadata_json),enabled:Boolean(row.enabled)}))}
 function audit(user,action,targetId){db.prepare('INSERT INTO audit_events(actor_user_id,action,target_type,target_id,created_at) VALUES(?,?,?,?,?)').run(user.id,action,'service',targetId||null,new Date().toISOString())}
 function safeId(s){return /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(s)}
 function safePort(n){return Number.isInteger(n)&&n>=1024&&n<=65535}
 const server=http.createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://localhost'),pathname=url.pathname;
-  if(req.method==='GET'&&pathname==='/api/health')return send(res,200,{status:'ok',service:'nhkhuy-portal',database:'ok'});
+  if(req.method==='GET'&&pathname==='/api/health')return send(res,200,{status:'ok',service:'nhkhuy-portal',database:'ok'});\n  if(req.method==='GET'&&pathname==='/api/services')return send(res,200,listServices());
   if(req.method==='GET'&&pathname==='/api/auth/status')return send(res,200,{setupRequired:!auth.bootstrapExists()});
   if(req.method==='POST'&&pathname==='/api/auth/login'){
    if(!sameOrigin(req))return send(res,403,{error:'Request rejected.'});
-   const x=await body(req),ip=(req.headers['x-forwarded-for']||req.socket.remoteAddress||'unknown').toString().split(',')[0].trim();
+   const x=await body(req),forwarded=req.headers['x-forwarded-for'],ip=(forwarded?forwarded.toString().split(',').at(-1).trim():req.socket.remoteAddress||'unknown');
    const result=await auth.login(x.username,x.password,ip,res);return send(res,result.status,result.body,'application/json; charset=utf-8',result.retryAfter?{'retry-after':String(result.retryAfter)}:{});
   }
   if(req.method==='GET'&&pathname==='/api/auth/me'){
@@ -44,7 +44,7 @@ const server=http.createServer(async(req,res)=>{
    if(['POST','PATCH','DELETE'].includes(req.method)&&!csrf(req,user))return send(res,403,{error:'Request rejected.'});
    if(req.method==='POST'&&pathname==='/api/admin/services'){
     const x=await body(req),id=String(x.id||'').toLowerCase(),name=String(x.name||'').trim(),port=Number(x.port);
-    if(!safeId(id)||!name||!safePort(port))return send(res,400,{error:'Use a lowercase service slug, a name, and a local port from 1024–65535.'});
+    if(!safeId(id)||!name||name.length>80||!safePort(port))return send(res,400,{error:'Use a lowercase service slug, a name, and a local port from 1024–65535.'});
     if(['9router','wedding','www','api','admin'].includes(id))return send(res,409,{error:'This subdomain is reserved.'});
     if(db.prepare('SELECT id FROM services WHERE id=?').get(id))return send(res,409,{error:'Service already exists.'});
     const service={id,name,description:String(x.description||'').slice(0,180),url:'https://'+id+'.'+DOMAIN,category:String(x.category||'Apps').slice(0,40),icon:'app-window',enabled:true,managedProxy:true,upstream:'127.0.0.1:'+port};
