@@ -4,9 +4,9 @@ _Last updated: 2026-11-10_
 
 ## Repository
 
-- Main: `38454bce19fcf148c2744c76444c759a1fe6f3e5`
-- Working branch: `feat/portal-v2-foundation`
-- Draft PR: [#1](https://github.com/rua-den/nhkhuy-portal/pull/1)
+- Main: `f9abb6fe44997c7f8189c35f71063b49ae722148`
+- Working branch: `feat/portal-authentication`
+- Draft PR: [#3](https://github.com/rua-den/nhkhuy-portal/pull/3)
 - Production: https://nhkhuy.run.place
 
 ## Delivery status
@@ -33,7 +33,7 @@ _Last updated: 2026-11-10_
 
 ## Next
 
-1. Run auth/API integration tests and complete login UI.
-2. Add API integration tests and then build the Vue admin UI.
+1. Verify CI and review any test failures.
+2. Build the Vue admin UI, account settings, and audit viewer.
 3. Update release packaging and staging only after the backend contracts are stable.
 
