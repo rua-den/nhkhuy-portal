@@ -45,7 +45,9 @@ PORTAL_COOKIE_SECURE=false node src/server.js
 
 Open `http://127.0.0.1:4189`. Create the owner account once with `npm run admin:bootstrap -- owner`, then sign in at `/login.html`. For local HTTP only, set `PORTAL_COOKIE_SECURE=false`; never disable Secure cookies in production.
 
-The admin API requires an authenticated session cookie. State-changing requests also require the CSRF token returned by `/api/auth/me` in the `X-CSRF-Token` header. No bearer token is exposed to browser code.\n\n## Deployment outline
+The admin API requires an authenticated session cookie. State-changing requests also require the CSRF token returned by `/api/auth/me` in the `X-CSRF-Token` header. No bearer token is exposed to browser code.
+
+## Deployment outline
 
 1. SSH to VPS and inspect OS/architecture, Node, Caddy, ports, current Caddyfile and systemd units.
 2. Back up `/etc/caddy/Caddyfile` and Caddy data/config.
