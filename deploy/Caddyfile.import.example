@@ -1,0 +1,9 @@
+# Add this import line to the EXISTING /etc/caddy/Caddyfile after reviewing it:
+# import /opt/nhkhuy-portal/deploy/managed-services.caddy
+#
+# Keep existing 9router and wedding site blocks untouched.
+# Portal reverse proxy:
+nhkhuy.run.place {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:4180
+}
