@@ -4,7 +4,7 @@ const {hashPassword,verifyPassword}=require('./password');
 const COOKIE='portal_session',TTL=12*60*60*1000,sha=s=>crypto.createHash('sha256').update(s).digest('hex');
 function parseCookies(header=''){const result={};for(const part of header.split(';')){const i=part.indexOf('=');if(i<1)continue;try{result[part.slice(0,i).trim()]=decodeURIComponent(part.slice(i+1).trim())}catch{}}return result}
 function createAuth(db,{secureCookies=true}={}){
- const attempts=new Map();
+ const attempts=new Map();\n const dummyPassword=hashPassword(crypto.randomBytes(32).toString('hex'));
  const audit=(uid,action)=>db.prepare('INSERT INTO audit_events(actor_user_id,action,target_type,created_at) VALUES(?,?,?,?)').run(uid,action,'auth',new Date().toISOString());
  function retryAfter(key){const v=attempts.get(key);if(!v)return 0;const left=v.until-Date.now();if(left<=0){attempts.delete(key);return 0}return Math.ceil(left/1000)}
  function failed(key){const v=attempts.get(key)||{count:0,until:0};v.count++;if(v.count>=5){v.until=Date.now()+Math.min(15*60_000,30_000*2**Math.min(v.count-5,5));v.count=0}attempts.set(key,v);if(attempts.size>2000){for(const [k,x] of attempts)if(x.until<Date.now())attempts.delete(k)}}
@@ -19,7 +19,7 @@ function createAuth(db,{secureCookies=true}={}){
  async function login(username,password,ip,res){
   const key=String(ip||'unknown')+'|'+String(username||'').toLowerCase(),wait=retryAfter(key);if(wait)return {status:429,body:{error:'Unable to sign in. Try again later.'},retryAfter:wait};
   const normalized=String(username||'').trim().toLowerCase(),row=db.prepare('SELECT * FROM users WHERE username=?').get(normalized);
-  const valid=await verifyPassword(typeof password==='string'?password:'',row);
+  const valid=await verifyPassword(typeof password==='string'?password:'',row||await dummyPassword);
   if(!valid){failed(key);return {status:401,body:{error:'Invalid username or password.'}}}
   attempts.delete(key);const token=crypto.randomBytes(32).toString('hex'),csrf=crypto.randomBytes(32).toString('hex'),now=new Date(),expires=new Date(now.getTime()+TTL).toISOString();
   db.prepare('INSERT INTO sessions(id_hash,user_id,csrf_token_hash,created_at,expires_at,last_seen_at) VALUES(?,?,?,?,?,?)').run(sha(token),row.id,sha(csrf),now.toISOString(),expires,now.toISOString());
@@ -27,7 +27,7 @@ function createAuth(db,{secureCookies=true}={}){
   return {status:200,body:{user:{username:row.username},csrfToken:csrf,expiresAt:expires}};
  }
  function rotateCsrf(user){const token=crypto.randomBytes(32).toString('hex');db.prepare('UPDATE sessions SET csrf_token_hash=?,last_seen_at=? WHERE id_hash=?').run(sha(token),new Date().toISOString(),user.sessionHash);return token}
- function csrfValid(user,token){return Boolean(user&&typeof token==='string'&&/^[a-f0-9]{64}$/.test(token)&&sha(token)===user.csrfHash)}
+ function csrfValid(user,token){if(!user||typeof token!=='string'||!/^[a-f0-9]{64}$/.test(token))return false;const a=Buffer.from(sha(token),'hex'),b=Buffer.from(user.csrfHash,'hex');return a.length===b.length&&crypto.timingSafeEqual(a,b)}
  function logout(user,res){if(user){db.prepare('DELETE FROM sessions WHERE id_hash=?').run(user.sessionHash);audit(user.id,'auth.logout')}clearCookie(res)}
  async function bootstrap(username,password){
   if(db.prepare('SELECT id FROM users LIMIT 1').get())throw new Error('Owner account already exists.');
