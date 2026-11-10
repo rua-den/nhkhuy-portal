@@ -34,6 +34,7 @@ jobs:
           set -euo pipefail
           node --check src/server.js
           node --check public/app.js
+          npm test
       - name: Start portal and smoke-test HTTP endpoints
         run: |
           set -euo pipefail

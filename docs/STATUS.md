@@ -16,8 +16,9 @@ _Last updated: 2026-11-10_
 | v0.1 production baseline | Running before v2 work | User-verified systemd health |
 | Architecture ADR | Accepted | ADR-0001 |
 | Repository/deploy inspection | Complete | deploy-release.sh, bootstrap.sh, systemd unit, CI |
-| SQLite runtime choice | Candidate selected | Node 22 built-in node:sqlite; x64 + ARM64 CI added |
-| Backend/auth | Not started | No v2 auth code exists |
+| SQLite runtime choice | Candidate selected | Node 22.23.2 built-in node:sqlite; x64 + ARM64 CI passed |
+| Backend persistence | First slice implemented | SQLite schema, migrations, JSON import, tests |
+| Backend/auth | Not started | Authentication and HTTP integration remain |
 | Frontend/admin | Not started | Existing public static UI remains v0.1 |
 | Staging | Not started | No staging service/data/port created |
 | Production cutover | Not started | v0.1 remains rollback target |
@@ -32,7 +33,7 @@ _Last updated: 2026-11-10_
 
 ## Next
 
-1. Wait for x64 and ARM64 Node 22 SQLite CI.
-2. Implement migrations, JSON import, owner bootstrap, scrypt, opaque sessions, CSRF, throttling, and audit events.
-3. Add API integration tests before the Vue admin UI.
-4. Update release packaging and staging only after backend contracts are stable.
+1. Integrate persistence with HTTP APIs and implement owner bootstrap/auth/session/CSRF/rate limiting.
+2. Add API integration tests and then build the Vue admin UI.
+3. Update release packaging and staging only after the backend contracts are stable.
+

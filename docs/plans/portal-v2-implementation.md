@@ -25,9 +25,9 @@ Replace the prototype with a public portal, owner login, and admin console while
 - [x] Select built-in Node 22 SQLite as candidate; ARM64 runtime verification remains a CI gate.
 
 ### Phase 1 — Backend foundation
-- [ ] Split API, configuration, persistence, auth, and static hosting.
-- [ ] Add SQLite schema/migrations for users, sessions, services, and audit events.
-- [ ] Idempotently import existing services.json.
+- [x] Add the first persistence module boundary (database + migration CLI); API/auth/static split remains.
+- [x] Add initial SQLite schema/migration for users, sessions, services, and audit events.
+- [x] Add idempotent legacy JSON importer with source fingerprint and metadata preservation.
 - [ ] Add one-time admin bootstrap; no default password.
 - [ ] Implement login/logout/current-session endpoints.
 - [ ] Use opaque server-side sessions and HttpOnly/Secure/SameSite cookies.
@@ -68,4 +68,4 @@ Replace the prototype with a public portal, owner login, and admin console while
 
 ## Current status
 
-Phase 0 repository inspection is complete. The deploy script expects the v0.1 file layout and health-checks port 4189; v2 packaging and health-check changes must be coordinated. The checked-in registry has two legacy definitions, but production data has not been read or modified. Phase 1 has not started.
+Phase 0 repository inspection and SQLite x64/ARM64 runtime verification are complete. The first backend persistence slice (schema, migration runner, and idempotent legacy import) is implemented; authentication and HTTP integration remain next. The deploy script expects the v0.1 file layout and health-checks port 4189; v2 packaging and health-check changes must be coordinated. The checked-in registry has two legacy definitions, but production data has not been read or modified. Phase 1 has not started.

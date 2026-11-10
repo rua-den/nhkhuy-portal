@@ -45,7 +45,7 @@ Positive:
 - No paid service or additional always-on infrastructure.
 
 Trade-offs:
-- Node 22's `node:sqlite` API is experimental; pin and test the exact runtime on x64 and ARM64 before production use.
+- Node 22's `node:sqlite` API is experimental. The exact Node 22.23.2 runtime has passed the repository's x64 and ARM64 CI smoke test; production use still requires persistence/auth integration tests.
 - SQLite suits this single-owner, low-write portal, not a high-concurrency multi-user product.
 - Authentication, migration, and deployment need integration tests before cutover.
 
