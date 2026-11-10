@@ -7,7 +7,7 @@ cat > /etc/nhkhuy-portal/portal.env <<EOF
 ADMIN_TOKEN=$TOKEN
 BASE_DOMAIN=nhkhuy.run.place
 HOST=127.0.0.1
-PORT=4180
+PORT=4189
 EOF
 chmod 600 /etc/nhkhuy-portal/portal.env
 echo "Admin token saved in /etc/nhkhuy-portal/portal.env (keep it secret)."
