@@ -6,20 +6,21 @@ After=network.target
 Type=simple
 User=nhkhuy-portal
 Group=nhkhuy-portal
-WorkingDirectory=/opt/nhkhuy-portal
+WorkingDirectory=/opt/nhkhuy-portal/current
 Environment=NODE_ENV=production
 Environment=HOST=127.0.0.1
 Environment=PORT=4189
 Environment=BASE_DOMAIN=nhkhuy.run.place
+Environment=PORTAL_DATA_DIR=/opt/nhkhuy-portal/shared/data
 EnvironmentFile=/etc/nhkhuy-portal/portal.env
-ExecStart=/usr/bin/node /opt/nhkhuy-portal/src/server.js
+ExecStart=/usr/bin/node /opt/nhkhuy-portal/current/src/server.js
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/opt/nhkhuy-portal/data
+ReadWritePaths=/opt/nhkhuy-portal/shared/data
 
 [Install]
 WantedBy=multi-user.target

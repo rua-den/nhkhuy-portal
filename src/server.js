@@ -4,7 +4,8 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 
 const ROOT = path.resolve(__dirname, "..");
-const DATA = path.join(ROOT, "data", "services.json");
+const DATA_DIR = path.resolve(process.env.PORTAL_DATA_DIR || path.join(ROOT, "data"));
+const DATA = path.join(DATA_DIR, "services.json");
 const PUBLIC = path.join(ROOT, "public");
 const PORT = Number(process.env.PORT || 4189);
 const HOST = process.env.HOST || "127.0.0.1";
@@ -12,7 +13,7 @@ const TOKEN = process.env.ADMIN_TOKEN || "";
 const DOMAIN = process.env.BASE_DOMAIN || "nhkhuy.run.place";
 const MAX_BODY = 32 * 1024;
 
-fs.mkdirSync(path.dirname(DATA), { recursive: true });
+fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(DATA)) {
   fs.copyFileSync(path.join(ROOT, "config", "services.json"), DATA);
 }
