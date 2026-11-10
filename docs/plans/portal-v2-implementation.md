@@ -40,8 +40,8 @@ Replace the prototype with a public portal, owner login, and admin console while
 - [ ] No secrets/tokens in browser storage.
 
 ### Phase 3 — Verification
-- [x] Unit tests for password hashing, owner bootstrap, sessions, throttling, and authorization.
-- [x] HTTP integration tests for login/logout, CSRF, admin access control, and registry updates.
+- [ ] Unit tests for password hashing, owner bootstrap, sessions, throttling, and authorization (implemented; CI pending).
+- [ ] HTTP integration tests for login/logout, CSRF, admin access control, and registry updates (implemented; CI pending).
 - [ ] Dependency and production-build checks.
 - [x] Verify built-in SQLite on Linux x64 and ARM64 CI runners; production adoption still requires end-to-end tests.
 - [ ] Test migration against a copy of the registry, including rollback.
