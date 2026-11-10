@@ -1,0 +1,8 @@
+{
+  "name": "nhkhuy-portal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personal portal and service registry for nhkhuy.run.place",
+  "scripts": { "start": "node src/server.js", "check": "node --check src/server.js" },
+  "engines": { "node": ">=20" }
+}
