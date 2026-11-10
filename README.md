@@ -6,8 +6,8 @@ Personal portal and initial service registry for `nhkhuy.run.place`.
 
 - Responsive terminal-style (TUI-inspired) web console.
 - Public read-only service listing.
-- Local JSON registry.
-- Token-protected admin API to list, register, enable/disable services.
+- SQLite service registry with a one-time, metadata-preserving JSON import.
+- Single-owner login and session-protected admin console.
 - systemd deployment template for Oracle Linux/Ubuntu ARM64.
 - DNS diagnostic helper.
 
@@ -23,15 +23,15 @@ They are listed as `managedProxy: false`; existing routing stays under current C
 ## Architecture
 
 Browser -> existing Caddy HTTPS -> portal on `127.0.0.1:4189`.
-Portal -> `/api/services` -> JSON registry.
-Admin -> `/api/admin/*` with Bearer token.
+Portal -> `/api/services` -> SQLite service registry.
+Owner -> `/login.html` -> opaque server-side session cookie -> authenticated `/api/admin/*`.
 
 No Caddy Admin API is exposed. The service binds only to loopback.
 
 ## Requirements
 
 - Linux ARM64 or x86_64
-- Node.js 20+
+- Node.js 22.23.2
 - Existing Caddy installation
 - DNS A/AAAA for root domain to VPS
 - For future automatic subdomains: wildcard `*.nhkhuy.run.place` record to VPS
@@ -40,33 +40,21 @@ No Caddy Admin API is exposed. The service binds only to loopback.
 
 ```bash
 npm run check
-ADMIN_TOKEN=dev-token node src/server.js
+PORTAL_COOKIE_SECURE=false node src/server.js
 ```
 
-Open `http://127.0.0.1:4189`.
+Open `http://127.0.0.1:4189`. Create the owner account once with `npm run admin:bootstrap -- owner`, then sign in at `/login.html`. For local HTTP only, set `PORTAL_COOKIE_SECURE=false`; never disable Secure cookies in production.
 
-Admin API example:
+On the VPS, bootstrap against the shared database as the service user (after a verified staging deployment): `sudo -u nhkhuy-portal env PORTAL_DATA_DIR=/opt/nhkhuy-portal/shared/data node /opt/nhkhuy-portal/current/src/cli/bootstrap-admin.js owner`. The password is entered interactively and is not placed in shell history.
 
-```bash
-curl -H "Authorization: Bearer $ADMIN_TOKEN" \
-  http://127.0.0.1:4189/api/admin/services
-```
-
-Register service:
-
-```bash
-curl -X POST http://127.0.0.1:4189/api/admin/services \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"id":"demo","name":"Demo","port":4000,"description":"Example app","category":"Experiments"}'
-```
+The admin API requires an authenticated session cookie. State-changing requests also require the CSRF token returned by `/api/auth/me` in the `X-CSRF-Token` header. No bearer token is exposed to browser code.
 
 ## Deployment outline
 
 1. SSH to VPS and inspect OS/architecture, Node, Caddy, ports, current Caddyfile and systemd units.
 2. Back up `/etc/caddy/Caddyfile` and Caddy data/config.
 3. Verify root DNS and wildcard DNS using `scripts/check-dns.sh`.
-4. Install Node.js 20+ if needed.
+4. Install Node.js 22.23.2 if needed.
 5. Copy project to `/opt/nhkhuy-portal`; create service account.
 6. Run `sudo deploy/configure-env.sh`.
 7. Install `deploy/nhkhuy-portal.service` to `/etc/systemd/system/`, then `systemctl daemon-reload`, enable and start.
@@ -91,10 +79,11 @@ Wildcard DNS does not itself issue TLS certificates; Caddy obtains certificates 
 
 ## Security / limitations
 
+- Production deployment is manual (`workflow_dispatch` on `main`) and requires both repository variables `CD_ENABLED=true` and `PROD_CUTOVER_ENABLED=true`. Keep the latter unset/false until the merged release has passed staging verification and rollback checks.
 - Never expose port 4189 publicly; Caddy should proxy to loopback.
 - Keep `/etc/nhkhuy-portal/portal.env` mode 0600.
-- Use a strong random admin token; do not put it in browser JavaScript.
-- v0.1 API is intended for local/admin use and should be protected behind an authenticated admin interface or SSH tunnel before exposing any admin UI.
+- Bootstrap one owner account interactively with `npm run admin:bootstrap -- owner`; there is no default account or public registration.
+- Passwords use Node.js `crypto.scrypt` with a random salt. Opaque 256-bit session IDs and CSRF tokens are stored only as SHA-256 hashes. The session cookie is HttpOnly, Secure in production, SameSite=Lax and Path=/. Admin HTML and APIs require a session; state changes require CSRF and same-origin validation. Login failures are generic and throttled.
 - Registration accepts only a local port, not arbitrary upstream URLs.
 - New service metadata is not equivalent to a working reverse-proxy route yet.
 - No DNS provider API credentials are stored by this app.
@@ -106,5 +95,5 @@ Wildcard DNS does not itself issue TLS certificates; Caddy obtains certificates 
 - [ ] VPS deployment and root hostname
 - [ ] Confirm wildcard DNS
 - [ ] v0.2 Caddy provisioner: generate managed fragment, validate, backup, reload, rollback
-- [ ] v0.3 admin UI + authentication, audit log, health checks
+- [x] v0.3 owner authentication API, session security, CSRF, audit log, login/admin UI (feature branch; CI pending)
 - [ ] v0.4 optional DNS provider integration and one-click service onboarding

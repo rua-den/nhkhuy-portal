@@ -28,20 +28,21 @@ Replace the prototype with a public portal, owner login, and admin console while
 - [x] Add the first persistence module boundary (database + migration CLI); API/auth/static split remains.
 - [x] Add initial SQLite schema/migration for users, sessions, services, and audit events.
 - [x] Add idempotent legacy JSON importer with source fingerprint and metadata preservation.
-- [ ] Add one-time admin bootstrap; no default password.
-- [ ] Implement login/logout/current-session endpoints.
-- [ ] Use opaque server-side sessions and HttpOnly/Secure/SameSite cookies.
-- [ ] Add CSRF, login throttling, generic auth errors, request limits, and security headers.
-- [ ] Keep public service listing read-only and limited to enabled services.
+- [x] Add one-time interactive admin bootstrap; no default password.
+- [x] Implement login/logout/current-session endpoints.
+- [x] Use opaque server-side sessions and HttpOnly/Secure/SameSite cookies.
+- [x] Add CSRF, login throttling, generic auth errors, request limits, and security headers.
+- [x] Keep public service listing read-only and limited to enabled services.
 
 ### Phase 2 — Frontend
 - [ ] Add Vue 3 + Vite using the existing Control Deck visual direction.
-- [ ] Public home, login, authenticated admin dashboard, account settings, audit log.
+- [x] Public home, owner login, and authenticated basic admin dashboard (static JS).
+- [ ] Vue migration, account settings, and audit log viewer.
 - [ ] No secrets/tokens in browser storage.
 
 ### Phase 3 — Verification
-- [ ] Unit tests for validation, password hashing, sessions, and authorization.
-- [ ] Integration tests for login/logout, CSRF, rate limits, CRUD, and public filtering.
+- [ ] Unit tests for password hashing, owner bootstrap, sessions, throttling, and authorization (implemented; CI pending).
+- [ ] HTTP integration tests for login/logout, CSRF, admin access control, and registry updates (implemented; CI pending).
 - [ ] Dependency and production-build checks.
 - [x] Verify built-in SQLite on Linux x64 and ARM64 CI runners; production adoption still requires end-to-end tests.
 - [ ] Test migration against a copy of the registry, including rollback.
@@ -68,4 +69,4 @@ Replace the prototype with a public portal, owner login, and admin console while
 
 ## Current status
 
-Phase 0 repository inspection and SQLite x64/ARM64 runtime verification are complete. The first backend persistence slice (schema, migration runner, and idempotent legacy import) is implemented; authentication and HTTP integration remain next. The deploy script expects the v0.1 file layout and health-checks port 4189; v2 packaging and health-check changes must be coordinated. The checked-in registry has two legacy definitions, but production data has not been read or modified. Phase 1 is in progress: initial persistence schema, migration runner, and legacy registry importer are implemented and covered by CI tests.
+Phase 0 repository inspection and SQLite x64/ARM64 runtime verification are complete. The backend persistence slice and authentication API are implemented on the authentication feature branch; CI verification and Vue migration remain next. The deploy script expects the v0.1 file layout and health-checks port 4189; v2 packaging and health-check changes must be coordinated. The checked-in registry has two legacy definitions, but production data has not been read or modified. Phase 1 is in progress: initial persistence schema, migration runner, and legacy registry importer are implemented and covered by CI tests.

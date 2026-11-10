@@ -24,14 +24,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.23.2
 
       - name: Syntax and HTTP smoke tests
         run: |
           set -euo pipefail
-          node --check src/server.js
-          node --check public/app.js
-          HOST=127.0.0.1 PORT=4189 ADMIN_TOKEN=ci-smoke-token node src/server.js > "$RUNNER_TEMP/portal.log" 2>&1 &
+          npm run check
+          npm test
+          HOST=127.0.0.1 PORT=4189 PORTAL_DATA_DIR="$RUNNER_TEMP/portal-data" PORTAL_COOKIE_SECURE=false node src/server.js > "$RUNNER_TEMP/portal.log" 2>&1 &
           SERVER_PID=$!
           cleanup() {
             kill "$SERVER_PID" 2>/dev/null || true
@@ -55,7 +55,7 @@ jobs:
   deploy:
     name: Deploy to production VPS
     needs: quality
-    if: github.ref == 'refs/heads/main' && vars.CD_ENABLED == 'true'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && vars.CD_ENABLED == 'true' && vars.PROD_CUTOVER_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: prod

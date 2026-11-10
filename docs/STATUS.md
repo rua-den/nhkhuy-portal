@@ -4,9 +4,9 @@ _Last updated: 2026-11-10_
 
 ## Repository
 
-- Main: `38454bce19fcf148c2744c76444c759a1fe6f3e5`
-- Working branch: `feat/portal-v2-foundation`
-- Draft PR: [#1](https://github.com/rua-den/nhkhuy-portal/pull/1)
+- Main: `f9abb6fe44997c7f8189c35f71063b49ae722148`
+- Working branch: `feat/portal-authentication`
+- PR: [#3](https://github.com/rua-den/nhkhuy-portal/pull/3) (ready for review; CI pending)
 - Production: https://nhkhuy.run.place
 
 ## Delivery status
@@ -18,10 +18,10 @@ _Last updated: 2026-11-10_
 | Repository/deploy inspection | Complete | deploy-release.sh, bootstrap.sh, systemd unit, CI |
 | SQLite runtime choice | Verified in CI | Node 22.23.2 built-in node:sqlite; x64 + ARM64 CI passed |
 | Backend persistence | First slice implemented | SQLite schema, migrations, JSON import, tests |
-| Backend/auth | Not started | Authentication and HTTP integration remain |
-| Frontend/admin | Not started | Existing public static UI remains v0.1 |
+| Backend/auth | Implemented on feature branch; CI pending | Owner bootstrap, scrypt, opaque sessions, cookie, CSRF, throttling, audit events, authenticated service API |
+| Frontend/admin | Basic static login and owner console implemented; Vue migration pending | login.html/login.js and protected admin.html/admin.js |
 | Staging | Not started | No staging service/data/port created |
-| Production cutover | Not started | v0.1 remains rollback target |
+| Production cutover | Not started | v0.1 remains rollback target; deploy workflow now requires manual dispatch on `main` plus explicit `PROD_CUTOVER_ENABLED=true` and `CD_ENABLED=true` after staging sign-off |
 
 ## Findings
 
@@ -33,7 +33,7 @@ _Last updated: 2026-11-10_
 
 ## Next
 
-1. Integrate persistence with HTTP APIs and implement owner bootstrap/auth/session/CSRF/rate limiting.
-2. Add API integration tests and then build the Vue admin UI.
+1. Verify CI and review any test failures.
+2. Build the Vue admin UI, account settings, and audit viewer.
 3. Update release packaging and staging only after the backend contracts are stable.
 
