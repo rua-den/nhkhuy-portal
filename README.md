@@ -54,7 +54,7 @@ The admin API requires an authenticated session cookie. State-changing requests 
 1. SSH to VPS and inspect OS/architecture, Node, Caddy, ports, current Caddyfile and systemd units.
 2. Back up `/etc/caddy/Caddyfile` and Caddy data/config.
 3. Verify root DNS and wildcard DNS using `scripts/check-dns.sh`.
-4. Install Node.js 20+ if needed.
+4. Install Node.js 22.23.2 if needed.
 5. Copy project to `/opt/nhkhuy-portal`; create service account.
 6. Run `sudo deploy/configure-env.sh`.
 7. Install `deploy/nhkhuy-portal.service` to `/etc/systemd/system/`, then `systemctl daemon-reload`, enable and start.
