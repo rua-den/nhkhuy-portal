@@ -1,0 +1,24 @@
+{
+  "services": [
+    {
+      "id": "9router",
+      "name": "9Router",
+      "description": "AI model routing dashboard",
+      "url": "https://9router.nhkhuy.run.place/dashboard",
+      "category": "Infrastructure",
+      "icon": "workflow",
+      "enabled": true,
+      "managedProxy": false
+    },
+    {
+      "id": "wedding",
+      "name": "Wedding",
+      "description": "Wedding website",
+      "url": "https://congchuavahoangtu.nhkhuy.run.place",
+      "category": "Projects",
+      "icon": "heart",
+      "enabled": true,
+      "managedProxy": false
+    }
+  ]
+}
