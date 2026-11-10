@@ -58,7 +58,8 @@ const server=http.createServer(async(req,res)=>{
    }
    return send(res,404,{error:'Not found.'});
   }
-  if(pathname.startsWith('/api/'))return send(res,404,{error:'Not found.'});\n  if(pathname==='/admin.html'&&!auth.userFor(req)){res.writeHead(302,{'location':'/login.html','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end()}
+  if(pathname.startsWith('/api/'))return send(res,404,{error:'Not found.'});
+  if(pathname==='/admin.html'&&!auth.userFor(req)){res.writeHead(302,{'location':'/login.html','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end()}
   let requested;try{requested=decodeURIComponent(pathname)}catch{return send(res,400,'Bad request.','text/plain; charset=utf-8')}
   if(requested==='/')requested='/index.html';
   const file=path.resolve(PUBLIC,'.'+requested);if(file!==PUBLIC&&!file.startsWith(PUBLIC+path.sep))return send(res,403,'Forbidden.','text/plain; charset=utf-8');
