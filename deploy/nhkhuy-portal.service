@@ -1,0 +1,25 @@
+[Unit]
+Description=NHKHUY Personal Portal
+After=network.target
+
+[Service]
+Type=simple
+User=nhkhuy-portal
+Group=nhkhuy-portal
+WorkingDirectory=/opt/nhkhuy-portal
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=4180
+Environment=BASE_DOMAIN=nhkhuy.run.place
+EnvironmentFile=/etc/nhkhuy-portal/portal.env
+ExecStart=/usr/bin/node /opt/nhkhuy-portal/src/server.js
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/nhkhuy-portal/data
+
+[Install]
+WantedBy=multi-user.target
