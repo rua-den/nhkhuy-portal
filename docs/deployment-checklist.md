@@ -40,10 +40,10 @@ Also back up any imported Caddy snippets discovered during inspection.
 ## Acceptance
 
 - [ ] Portal service active
-- [ ] `curl -fsS http://127.0.0.1:4180/api/health`
+- [ ] `curl -fsS http://127.0.0.1:4189/api/health`
 - [ ] root HTTPS loads
 - [ ] `/api/services` returns seeded services
 - [ ] 9Router dashboard still works
 - [ ] Wedding website still works
 - [ ] Caddy config validates
-- [ ] no public listener on 4180
+- [ ] no public listener on 4189
