@@ -6,6 +6,15 @@ const fs = require('node:fs');
 const SOURCE_KEY = 'config/services.json:v1';
 const ID_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
 
+function isValidServiceUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && Boolean(url.hostname) && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
 function validateRegistry(registry) {
   if (!registry || typeof registry !== 'object' || !Array.isArray(registry.services)) {
     throw new Error('Legacy registry must contain a services array.');
@@ -16,7 +25,7 @@ function validateRegistry(registry) {
     if (!service || typeof service !== 'object' ||
         typeof service.id !== 'string' || !ID_PATTERN.test(service.id) ||
         typeof service.name !== 'string' || !service.name.trim() ||
-        typeof service.url !== 'string' || !/^https:\/\//.test(service.url)) {
+        typeof service.url !== 'string' || !isValidServiceUrl(service.url)) {
       throw new Error('Legacy registry contains an invalid service record.');
     }
     if (ids.has(service.id)) throw new Error('Legacy registry contains duplicate service IDs.');

@@ -23,6 +23,7 @@ test('migrations are applied once and survive reopening', () => {
   try {
     let db = openDatabase(f.databasePath);
     assert.equal(db.prepare('SELECT COUNT(*) AS count FROM schema_migrations').get().count, 1);
+    assert.equal(fs.statSync(f.databasePath).mode & 0o777, 0o600);
     db.close();
     db = openDatabase(f.databasePath);
     assert.equal(db.prepare('SELECT COUNT(*) AS count FROM schema_migrations').get().count, 1);

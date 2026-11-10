@@ -100,6 +100,7 @@ function openDatabase(filename) {
   fs.mkdirSync(path.dirname(databasePath), { recursive: true });
   const database = new DatabaseSync(databasePath);
   try {
+    fs.chmodSync(databasePath, 0o600);
     database.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL;');
     migrate(database);
     return database;
