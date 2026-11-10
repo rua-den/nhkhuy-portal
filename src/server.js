@@ -54,8 +54,8 @@ const server=http.createServer(async(req,res)=>{
    }
    if(req.method==='PATCH'&&pathname.startsWith('/api/admin/services/')){
     const id=decodeURIComponent(pathname.slice('/api/admin/services/'.length));if(!safeId(id))return send(res,400,{error:'Invalid service ID.'});
-    const row=db.prepare('SELECT metadata_json FROM services WHERE id=?').get(id);if(!row)return send(res,404,{error:'Service not found.'});
-    const x=await body(req),service=JSON.parse(row.metadata_json);if(typeof x.enabled==='boolean')service.enabled=x.enabled;if(x.name!==undefined){const name=String(x.name).trim();if(!name)return send(res,400,{error:'Name is required.'});service.name=name.slice(0,80)}if(x.description!==undefined)service.description=String(x.description).slice(0,180);
+    const row=db.prepare('SELECT metadata_json,enabled FROM services WHERE id=?').get(id);if(!row)return send(res,404,{error:'Service not found.'});
+    const x=await body(req),service={...JSON.parse(row.metadata_json),enabled:Boolean(row.enabled)};if(typeof x.enabled==='boolean')service.enabled=x.enabled;if(x.name!==undefined){const name=String(x.name).trim();if(!name)return send(res,400,{error:'Name is required.'});service.name=name.slice(0,80)}if(x.description!==undefined)service.description=String(x.description).slice(0,180);
     db.prepare('UPDATE services SET name=?,description=?,enabled=?,metadata_json=?,updated_at=? WHERE id=?').run(service.name,service.description||'',service.enabled?1:0,JSON.stringify(service),new Date().toISOString(),id);audit(user,'service.update',id);return send(res,200,{service});
    }
    return send(res,404,{error:'Not found.'});
