@@ -23,7 +23,8 @@ function safePort(n){return Number.isInteger(n)&&n>=1024&&n<=65535}
 const server=http.createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://localhost'),pathname=url.pathname;
-  if(req.method==='GET'&&pathname==='/api/health')return send(res,200,{status:'ok',service:'nhkhuy-portal',database:'ok'});\n  if(req.method==='GET'&&pathname==='/api/services')return send(res,200,listServices());
+  if(req.method==='GET'&&pathname==='/api/health')return send(res,200,{status:'ok',service:'nhkhuy-portal',database:'ok'});
+  if(req.method==='GET'&&pathname==='/api/services')return send(res,200,listServices());
   if(req.method==='GET'&&pathname==='/api/auth/status')return send(res,200,{setupRequired:!auth.bootstrapExists()});
   if(req.method==='POST'&&pathname==='/api/auth/login'){
    if(!sameOrigin(req))return send(res,403,{error:'Request rejected.'});
