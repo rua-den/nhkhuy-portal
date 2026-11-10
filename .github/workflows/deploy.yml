@@ -13,8 +13,48 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  quality:
+    name: Deployment preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Syntax and HTTP smoke tests
+        run: |
+          set -euo pipefail
+          node --check src/server.js
+          node --check public/app.js
+          HOST=127.0.0.1 PORT=4189 ADMIN_TOKEN=ci-smoke-token node src/server.js > "$RUNNER_TEMP/portal.log" 2>&1 &
+          SERVER_PID=$!
+          cleanup() {
+            kill "$SERVER_PID" 2>/dev/null || true
+            wait "$SERVER_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          ready=0
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:4189/api/health > "$RUNNER_TEMP/health.json"; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$SERVER_PID" 2>/dev/null; then cat "$RUNNER_TEMP/portal.log"; exit 1; fi
+            sleep 1
+          done
+          test "$ready" -eq 1 || { cat "$RUNNER_TEMP/portal.log"; exit 1; }
+          node -e 'const h=require(process.argv[1]); if(h.status!=="ok" || h.service!=="nhkhuy-portal") process.exit(1)' "$RUNNER_TEMP/health.json"
+          curl --fail --silent --show-error http://127.0.0.1:4189/api/services > "$RUNNER_TEMP/services.json"
+          node -e 'const s=require(process.argv[1]); if(!Array.isArray(s) || s.length < 2) process.exit(1)' "$RUNNER_TEMP/services.json"
+
   deploy:
     name: Deploy to production VPS
+    needs: quality
     if: github.ref == 'refs/heads/main' && vars.CD_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -41,7 +81,6 @@ jobs:
       - name: Package release
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/portal-release"
           tar -czf "$RUNNER_TEMP/portal-release.tar.gz" src public config package.json
 
       - name: Upload and activate release
