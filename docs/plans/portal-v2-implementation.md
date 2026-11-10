@@ -10,7 +10,7 @@ Replace the prototype with a public portal, owner login, and admin console while
 - One app process; Vue compiles to static files.
 - Never modify Wedding, 9Router, their data/processes/ports, or their Caddy blocks.
 - Keep v0.1 on 127.0.0.1:4189 until v2 is verified.
-- Feature branches run CI; production deployment remains main-only.
+- Feature branches run CI; production deployment remains main-only and requires explicit manual cutover.
 - Never expose secrets or store auth tokens in browser storage.
 - Preserve public service URLs and registry metadata.
 - Avoid native SQLite addons unless target-OS ARM64 packaging is proven.
@@ -31,20 +31,20 @@ Replace the prototype with a public portal, owner login, and admin console while
 - [x] Add one-time interactive admin bootstrap; no default password.
 - [x] Implement login/logout/current-session endpoints.
 - [x] Use opaque server-side sessions and HttpOnly/Secure/SameSite cookies.
-- [x] Add CSRF, login throttling, generic auth errors, request limits, and security headers.
+- [x] Add CSRF, IP-based login throttling, generic auth errors, request limits, and security headers.
 - [x] Keep public service listing read-only and limited to enabled services.
 
 ### Phase 2 — Frontend
 - [ ] Add Vue 3 + Vite using the existing Control Deck visual direction.
 - [x] Public home, owner login, and authenticated basic admin dashboard (static JS).
 - [ ] Vue migration, account settings, and audit log viewer.
-- [ ] No secrets/tokens in browser storage.
+- [x] No secrets/tokens in browser storage.
 
 ### Phase 3 — Verification
-- [ ] Unit tests for password hashing, owner bootstrap, sessions, throttling, and authorization (implemented; CI pending).
-- [ ] HTTP integration tests for login/logout, CSRF, admin access control, and registry updates (implemented; CI pending).
+- [x] Unit tests for password hashing, owner bootstrap, sessions, throttling, and authorization.
+- [x] HTTP integration tests for login/logout, CSRF, admin access control, and registry updates.
 - [ ] Dependency and production-build checks.
-- [x] Verify built-in SQLite on Linux x64 and ARM64 CI runners; production adoption still requires end-to-end tests.
+- [x] Verify built-in SQLite on Linux x64 and ARM64 CI runners.
 - [ ] Test migration against a copy of the registry, including rollback.
 
 ### Phase 4 — Staging and cutover
@@ -69,4 +69,4 @@ Replace the prototype with a public portal, owner login, and admin console while
 
 ## Current status
 
-Phase 0 repository inspection and SQLite x64/ARM64 runtime verification are complete. The backend persistence slice and authentication API are implemented on the authentication feature branch; CI verification and Vue migration remain next. The deploy script expects the v0.1 file layout and health-checks port 4189; v2 packaging and health-check changes must be coordinated. The checked-in registry has two legacy definitions, but production data has not been read or modified. Phase 1 is in progress: initial persistence schema, migration runner, and legacy registry importer are implemented and covered by CI tests.
+The persistence and authentication slices are merged to `main`. The merged commit passed Node 22.23.2 CI, HTTP integration/smoke tests, and SQLite runtime checks on x64 and ARM64. Production remains on the v0.1 release; staging, production data backup/migration validation, and controlled cutover are still outstanding. The deploy workflow requires manual dispatch on `main` plus explicit cutover variables, so merging alone does not deploy production. Vue migration and extended admin features remain future work.
