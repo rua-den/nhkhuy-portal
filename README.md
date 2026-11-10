@@ -45,6 +45,8 @@ PORTAL_COOKIE_SECURE=false node src/server.js
 
 Open `http://127.0.0.1:4189`. Create the owner account once with `npm run admin:bootstrap -- owner`, then sign in at `/login.html`. For local HTTP only, set `PORTAL_COOKIE_SECURE=false`; never disable Secure cookies in production.
 
+On the VPS, bootstrap against the shared database as the service user (after a verified staging deployment): `sudo -u nhkhuy-portal env PORTAL_DATA_DIR=/opt/nhkhuy-portal/shared/data node /opt/nhkhuy-portal/current/src/cli/bootstrap-admin.js owner`. The password is entered interactively and is not placed in shell history.
+
 The admin API requires an authenticated session cookie. State-changing requests also require the CSRF token returned by `/api/auth/me` in the `X-CSRF-Token` header. No bearer token is exposed to browser code.
 
 ## Deployment outline
