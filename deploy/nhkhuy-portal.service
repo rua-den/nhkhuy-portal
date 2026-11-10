@@ -9,7 +9,7 @@ Group=nhkhuy-portal
 WorkingDirectory=/opt/nhkhuy-portal
 Environment=NODE_ENV=production
 Environment=HOST=127.0.0.1
-Environment=PORT=4180
+Environment=PORT=4189
 Environment=BASE_DOMAIN=nhkhuy.run.place
 EnvironmentFile=/etc/nhkhuy-portal/portal.env
 ExecStart=/usr/bin/node /opt/nhkhuy-portal/src/server.js
