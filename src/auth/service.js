@@ -18,8 +18,10 @@ function createAuth(db,{secureCookies=true}={}){
   return {id:row.user_id,username:row.username,sessionHash:row.id_hash,csrfHash:row.csrf_token_hash};
  }
  async function login(username,password,ip,res){
-  const key=String(ip||'unknown')+'|'+String(username||'').toLowerCase(),wait=retryAfter(key);if(wait)return {status:429,body:{error:'Unable to sign in. Try again later.'},retryAfter:wait};
-  const normalized=String(username||'').trim().toLowerCase(),row=db.prepare('SELECT * FROM users WHERE username=?').get(normalized);
+  const candidate=typeof username==='string'?username.trim().toLowerCase():'';
+  const normalized=/^[a-z0-9][a-z0-9._-]{2,31}$/.test(candidate)?candidate:'';
+  const key=String(ip||'unknown').slice(0,128)+'|'+(candidate.slice(0,32)||'<invalid>'),wait=retryAfter(key);if(wait)return {status:429,body:{error:'Unable to sign in. Try again later.'},retryAfter:wait};
+  const row=db.prepare('SELECT * FROM users WHERE username=?').get(normalized);
   const valid=await verifyPassword(typeof password==='string'?password:'',row||await dummyPassword);
   if(!valid){failed(key);return {status:401,body:{error:'Invalid username or password.'}}}
   attempts.delete(key);const token=crypto.randomBytes(32).toString('hex'),csrf=crypto.randomBytes(32).toString('hex'),now=new Date(),expires=new Date(now.getTime()+TTL).toISOString();
