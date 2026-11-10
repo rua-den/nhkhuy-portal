@@ -49,13 +49,13 @@ Admin API example:
 
 ```bash
 curl -H "Authorization: Bearer $ADMIN_TOKEN" \
-  http://127.0.0.1:4180/api/admin/services
+  http://127.0.0.1:4189/api/admin/services
 ```
 
 Register service:
 
 ```bash
-curl -X POST http://127.0.0.1:4180/api/admin/services \
+curl -X POST http://127.0.0.1:4189/api/admin/services \
   -H "Authorization: Bearer $ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"id":"demo","name":"Demo","port":4000,"description":"Example app","category":"Experiments"}'
@@ -70,7 +70,7 @@ curl -X POST http://127.0.0.1:4180/api/admin/services \
 5. Copy project to `/opt/nhkhuy-portal`; create service account.
 6. Run `sudo deploy/configure-env.sh`.
 7. Install `deploy/nhkhuy-portal.service` to `/etc/systemd/system/`, then `systemctl daemon-reload`, enable and start.
-8. Verify `curl http://127.0.0.1:4180/api/health`.
+8. Verify `curl http://127.0.0.1:4189/api/health`.
 9. Review existing Caddyfile. Add only the root site block from `deploy/Caddyfile.import.example` (or a safe import) without touching existing site blocks.
 10. Run `caddy validate` before reload; reload only after successful validation.
 11. Verify HTTPS root domain and existing 9Router/wedding routes.
@@ -91,7 +91,7 @@ Wildcard DNS does not itself issue TLS certificates; Caddy obtains certificates 
 
 ## Security / limitations
 
-- Never expose port 4180 publicly; Caddy should proxy to loopback.
+- Never expose port 4189 publicly; Caddy should proxy to loopback.
 - Keep `/etc/nhkhuy-portal/portal.env` mode 0600.
 - Use a strong random admin token; do not put it in browser JavaScript.
 - v0.1 API is intended for local/admin use and should be protected behind an authenticated admin interface or SSH tunnel before exposing any admin UI.
