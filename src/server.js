@@ -7,6 +7,7 @@ const ROOT=path.resolve(__dirname,'..'),DATA_DIR=path.resolve(process.env.PORTAL
 const DB_PATH=path.resolve(process.env.PORTAL_DB_PATH||path.join(DATA_DIR,'portal.sqlite'));
 const PUBLIC=path.join(ROOT,'public'),PORT=Number(process.env.PORT||4189),HOST=process.env.HOST||'127.0.0.1';
 const DOMAIN=process.env.BASE_DOMAIN||'nhkhuy.run.place',MAX_BODY=32*1024;
+process.umask(0o077);
 const db=openDatabase(DB_PATH);
 const legacyPath=fs.existsSync(path.join(DATA_DIR,'services.json'))?path.join(DATA_DIR,'services.json'):path.join(ROOT,'config','services.json');
 try{importLegacyServices(db,legacyPath)}catch(error){console.error('Legacy registry import failed:',error.message);process.exit(1)}
