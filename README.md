@@ -79,7 +79,8 @@ Wildcard DNS does not itself issue TLS certificates; Caddy obtains certificates 
 
 ## Security / limitations
 
-- Production deployment requires both repository variables `CD_ENABLED=true` and `PROD_CUTOVER_ENABLED=true`. Keep the latter unset/false until the merged release has passed staging verification and rollback checks.\n- Never expose port 4189 publicly; Caddy should proxy to loopback.
+- Production deployment requires both repository variables `CD_ENABLED=true` and `PROD_CUTOVER_ENABLED=true`. Keep the latter unset/false until the merged release has passed staging verification and rollback checks.
+- Never expose port 4189 publicly; Caddy should proxy to loopback.
 - Keep `/etc/nhkhuy-portal/portal.env` mode 0600.
 - Bootstrap one owner account interactively with `npm run admin:bootstrap -- owner`; there is no default account or public registration.
 - Passwords use Node.js `crypto.scrypt` with a random salt. Opaque 256-bit session IDs and CSRF tokens are stored only as SHA-256 hashes. The session cookie is HttpOnly, Secure in production, SameSite=Lax and Path=/. Admin HTML and APIs require a session; state changes require CSRF and same-origin validation. Login failures are generic and throttled.
