@@ -23,8 +23,8 @@ They are listed as `managedProxy: false`; existing routing stays under current C
 ## Architecture
 
 Browser -> existing Caddy HTTPS -> portal on `127.0.0.1:4189`.
-Portal -> `/api/services` -> JSON registry.
-Admin -> `/api/admin/*` with Bearer token.
+Portal -> `/api/services` -> SQLite service registry.
+Owner -> `/login.html` -> opaque server-side session cookie -> authenticated `/api/admin/*`.
 
 No Caddy Admin API is exposed. The service binds only to loopback.
 
@@ -40,10 +40,10 @@ No Caddy Admin API is exposed. The service binds only to loopback.
 
 ```bash
 npm run check
-ADMIN_TOKEN=dev-token node src/server.js
+PORTAL_COOKIE_SECURE=false node src/server.js
 ```
 
-Open `http://127.0.0.1:4189`.
+Open `http://127.0.0.1:4189`. Create the owner account once with `npm run admin:bootstrap -- owner`, then sign in at `/login.html`. For local HTTP only, set `PORTAL_COOKIE_SECURE=false`; never disable Secure cookies in production.
 
 Admin API example:
 
@@ -93,8 +93,8 @@ Wildcard DNS does not itself issue TLS certificates; Caddy obtains certificates 
 
 - Never expose port 4189 publicly; Caddy should proxy to loopback.
 - Keep `/etc/nhkhuy-portal/portal.env` mode 0600.
-- Use a strong random admin token; do not put it in browser JavaScript.
-- v0.1 API is intended for local/admin use and should be protected behind an authenticated admin interface or SSH tunnel before exposing any admin UI.
+- Bootstrap one owner account interactively with `npm run admin:bootstrap -- owner`; there is no default account or public registration.
+- Passwords use Node.js `crypto.scrypt` with a random salt. Opaque 256-bit session IDs and CSRF tokens are stored only as SHA-256 hashes. The session cookie is HttpOnly, Secure in production, SameSite=Lax and Path=/. Admin HTML and APIs require a session; state changes require CSRF and same-origin validation. Login failures are generic and throttled.
 - Registration accepts only a local port, not arbitrary upstream URLs.
 - New service metadata is not equivalent to a working reverse-proxy route yet.
 - No DNS provider API credentials are stored by this app.
@@ -106,5 +106,5 @@ Wildcard DNS does not itself issue TLS certificates; Caddy obtains certificates 
 - [ ] VPS deployment and root hostname
 - [ ] Confirm wildcard DNS
 - [ ] v0.2 Caddy provisioner: generate managed fragment, validate, backup, reload, rollback
-- [ ] v0.3 admin UI + authentication, audit log, health checks
+- [x] v0.3 owner authentication API, session security, CSRF, audit log, login/admin UI (feature branch; CI pending)
 - [ ] v0.4 optional DNS provider integration and one-click service onboarding
