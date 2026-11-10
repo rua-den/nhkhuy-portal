@@ -21,7 +21,7 @@ _Last updated: 2026-11-10_
 | Backend/auth | Implemented on feature branch; CI pending | Owner bootstrap, scrypt, opaque sessions, cookie, CSRF, throttling, audit events, authenticated service API |
 | Frontend/admin | Basic static login and owner console implemented; Vue migration pending | login.html/login.js and protected admin.html/admin.js |
 | Staging | Not started | No staging service/data/port created |
-| Production cutover | Not started | v0.1 remains rollback target |
+| Production cutover | Not started | v0.1 remains rollback target; deploy workflow now requires explicit `PROD_CUTOVER_ENABLED=true` in addition to `CD_ENABLED=true` after staging sign-off |
 
 ## Findings
 
