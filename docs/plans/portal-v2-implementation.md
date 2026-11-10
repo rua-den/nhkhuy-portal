@@ -22,7 +22,7 @@ Replace the prototype with a public portal, owner login, and admin console while
 - [x] Add implementation plan and acceptance criteria.
 - [x] Inspect deploy-release.sh, bootstrap.sh, systemd unit, and CI packaging contract.
 - [x] Confirm checked-in registry schema and production data path; production data itself remains uninspected and must not be assumed to match Git.
-- [x] Select built-in Node 22 SQLite as candidate; ARM64 runtime verification remains a CI gate.
+- [x] Verify built-in Node 22.23.2 SQLite on Linux x64 and ARM64 CI runners.
 
 ### Phase 1 — Backend foundation
 - [x] Add the first persistence module boundary (database + migration CLI); API/auth/static split remains.
@@ -43,7 +43,7 @@ Replace the prototype with a public portal, owner login, and admin console while
 - [ ] Unit tests for validation, password hashing, sessions, and authorization.
 - [ ] Integration tests for login/logout, CSRF, rate limits, CRUD, and public filtering.
 - [ ] Dependency and production-build checks.
-- [ ] Verify built-in SQLite on Linux x64 and ARM64 before production adoption.
+- [x] Verify built-in SQLite on Linux x64 and ARM64 CI runners; production adoption still requires end-to-end tests.
 - [ ] Test migration against a copy of the registry, including rollback.
 
 ### Phase 4 — Staging and cutover
@@ -68,4 +68,4 @@ Replace the prototype with a public portal, owner login, and admin console while
 
 ## Current status
 
-Phase 0 repository inspection and SQLite x64/ARM64 runtime verification are complete. The first backend persistence slice (schema, migration runner, and idempotent legacy import) is implemented; authentication and HTTP integration remain next. The deploy script expects the v0.1 file layout and health-checks port 4189; v2 packaging and health-check changes must be coordinated. The checked-in registry has two legacy definitions, but production data has not been read or modified. Phase 1 has not started.
+Phase 0 repository inspection and SQLite x64/ARM64 runtime verification are complete. The first backend persistence slice (schema, migration runner, and idempotent legacy import) is implemented; authentication and HTTP integration remain next. The deploy script expects the v0.1 file layout and health-checks port 4189; v2 packaging and health-check changes must be coordinated. The checked-in registry has two legacy definitions, but production data has not been read or modified. Phase 1 is in progress: initial persistence schema, migration runner, and legacy registry importer are implemented and covered by CI tests.

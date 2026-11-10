@@ -16,7 +16,7 @@ _Last updated: 2026-11-10_
 | v0.1 production baseline | Running before v2 work | User-verified systemd health |
 | Architecture ADR | Accepted | ADR-0001 |
 | Repository/deploy inspection | Complete | deploy-release.sh, bootstrap.sh, systemd unit, CI |
-| SQLite runtime choice | Candidate selected | Node 22.23.2 built-in node:sqlite; x64 + ARM64 CI passed |
+| SQLite runtime choice | Verified in CI | Node 22.23.2 built-in node:sqlite; x64 + ARM64 CI passed |
 | Backend persistence | First slice implemented | SQLite schema, migrations, JSON import, tests |
 | Backend/auth | Not started | Authentication and HTTP integration remain |
 | Frontend/admin | Not started | Existing public static UI remains v0.1 |
