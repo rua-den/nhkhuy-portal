@@ -1,39 +1,40 @@
 # Project status
 
-_Last updated: 2026-11-10_
+_Last updated: 2026-11-11_
 
 ## Repository
 
-- Main: `f9abb6fe44997c7f8189c35f71063b49ae722148`
-- Working branch: `feat/portal-authentication`
-- PR: [#3](https://github.com/rua-den/nhkhuy-portal/pull/3) (ready for review; CI pending)
+- Main: `a385dbe7f2356933903c042e0376dc0a45f71338`
+- Authentication: PR [#3](https://github.com/rua-den/nhkhuy-portal/pull/3) merged (squash)
+- Working branch: `docs/portal-auth-status-after-auth-merge` (status synchronization)
 - Production: https://nhkhuy.run.place
 
 ## Delivery status
 
 | Area | Status | Evidence |
 |---|---|---|
-| v0.1 production baseline | Running before v2 work | User-verified systemd health |
+| v0.1 production baseline | Preserved; no auth cutover | Existing production release/data untouched |
 | Architecture ADR | Accepted | ADR-0001 |
-| Repository/deploy inspection | Complete | deploy-release.sh, bootstrap.sh, systemd unit, CI |
-| SQLite runtime choice | Verified in CI | Node 22.23.2 built-in node:sqlite; x64 + ARM64 CI passed |
-| Backend persistence | First slice implemented | SQLite schema, migrations, JSON import, tests |
-| Backend/auth | Implemented on feature branch; CI pending | Owner bootstrap, scrypt, opaque sessions, cookie, CSRF, throttling, audit events, authenticated service API |
-| Frontend/admin | Basic static login and owner console implemented; Vue migration pending | login.html/login.js and protected admin.html/admin.js |
-| Staging | Not started | No staging service/data/port created |
-| Production cutover | Not started | v0.1 remains rollback target; deploy workflow now requires manual dispatch on `main` plus explicit `PROD_CUTOVER_ENABLED=true` and `CD_ENABLED=true` after staging sign-off |
+| Repository/deploy inspection | Complete | Deployment scripts, systemd unit, CI reviewed |
+| SQLite runtime | Verified | Node 22.23.2 built-in node:sqlite; x64 + ARM64 CI passed |
+| Backend persistence | Implemented on main | SQLite schema, migrations, idempotent JSON import |
+| Backend/auth | Merged; CI passed | Owner bootstrap, scrypt, opaque sessions, cookie, CSRF, IP-based throttling, audit events, protected service API |
+| Frontend/admin | Basic static UI merged; Vue migration pending | Public home, login page, authenticated admin console |
+| CI | Passed on merged main commit | Unit/integration tests, HTTP smoke test, x64 + ARM64 SQLite runtime |
+| Staging | Not started | No staging release/port/data directory created |
+| Production cutover | Not deployed | Production deploy job was skipped; explicit manual dispatch and cutover gate required |
 
 ## Findings
 
-- Current deployment expects the v0.1 file layout and health-checks port 4189. V2 packaging and health-check changes must be coordinated.
-- Deployment switches a release symlink and rolls back on failed health checks; it does not provide a v2 staging port.
-- Production data path is `/opt/nhkhuy-portal/shared/data`. Git's `config/services.json` is only the seed, not proof of production contents.
-- systemd runs as `nhkhuy-portal` with `ProtectSystem=strict`; persistent writes must stay under shared data.
-- No Caddy or other application configuration has been changed.
+- The v2 auth implementation is merged but has not been deployed to staging or production.
+- Production data path is `/opt/nhkhuy-portal/shared/data`. Git's `config/services.json` is only a seed; production contents must be backed up and inspected before migration.
+- The production deploy workflow now requires a manual dispatch on `main` and both `CD_ENABLED=true` and `PROD_CUTOVER_ENABLED=true`. Keep the latter unset/false until staging and rollback checks pass.
+- Current deploy packaging and health checks still follow the v0.1 release contract; staging needs its own release, loopback port, and data directory.
+- No production data, Caddy configuration, Wedding Online, or 9Router resources were changed.
 
 ## Next
 
-1. Verify CI and review any test failures.
-2. Build the Vue admin UI, account settings, and audit viewer.
-3. Update release packaging and staging only after the backend contracts are stable.
-
+1. Prepare isolated ARM64 staging release, port, and data directory without touching production.
+2. Verify migrations, login/bootstrap, cookies, CSRF, rate limiting, service APIs, restart persistence, and rollback.
+3. Only after staging sign-off, schedule a controlled production cutover.
+4. Continue Vue 3 migration, account settings, and audit viewer separately.
