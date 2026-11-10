@@ -23,6 +23,7 @@ test('HTTP auth flow protects admin APIs and enforces CSRF',async t=>{
   const first=registry.services[0],payload=JSON.stringify({enabled:!first.enabled});
   const noCsrf=await fetch(base+'/api/admin/services/'+first.id,{method:'PATCH',headers:{cookie,'content-type':'application/json'},body:payload});assert.equal(noCsrf.status,403);
   const changed=await fetch(base+'/api/admin/services/'+first.id,{method:'PATCH',headers:{cookie,'content-type':'application/json','x-csrf-token':session.csrfToken},body:payload});assert.equal(changed.status,200);
+  const partial=await fetch(base+'/api/admin/services/'+first.id,{method:'PATCH',headers:{cookie,'content-type':'application/json','x-csrf-token':session.csrfToken},body:JSON.stringify({name:'Updated test name'})});assert.equal(partial.status,200);assert.equal((await partial.json()).service.enabled,!first.enabled);
   const logout=await fetch(base+'/api/auth/logout',{method:'POST',headers:{cookie,'x-csrf-token':session.csrfToken}});assert.equal(logout.status,204);
   const expired=await fetch(base+'/api/admin/services',{headers:{cookie}});assert.equal(expired.status,401);
  }finally{
