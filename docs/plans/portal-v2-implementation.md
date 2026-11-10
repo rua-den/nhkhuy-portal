@@ -36,7 +36,8 @@ Replace the prototype with a public portal, owner login, and admin console while
 
 ### Phase 2 — Frontend
 - [ ] Add Vue 3 + Vite using the existing Control Deck visual direction.
-- [x] Public home, owner login, and authenticated basic admin dashboard (static JS).\n- [ ] Vue migration, account settings, and audit log viewer.
+- [x] Public home, owner login, and authenticated basic admin dashboard (static JS).
+- [ ] Vue migration, account settings, and audit log viewer.
 - [ ] No secrets/tokens in browser storage.
 
 ### Phase 3 — Verification
