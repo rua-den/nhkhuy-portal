@@ -2,7 +2,6 @@
 'use strict';
 
 const fs = require('node:fs');
-const fs = require('node:fs');
 const path = require('node:path');
 const { openDatabase } = require('../db/database');
 const { importLegacyServices } = require('../db/import-legacy-services');
