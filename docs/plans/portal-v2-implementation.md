@@ -28,11 +28,11 @@ Replace the prototype with a public portal, owner login, and admin console while
 - [x] Add the first persistence module boundary (database + migration CLI); API/auth/static split remains.
 - [x] Add initial SQLite schema/migration for users, sessions, services, and audit events.
 - [x] Add idempotent legacy JSON importer with source fingerprint and metadata preservation.
-- [ ] Add one-time admin bootstrap; no default password.
-- [ ] Implement login/logout/current-session endpoints.
-- [ ] Use opaque server-side sessions and HttpOnly/Secure/SameSite cookies.
-- [ ] Add CSRF, login throttling, generic auth errors, request limits, and security headers.
-- [ ] Keep public service listing read-only and limited to enabled services.
+- [x] Add one-time interactive admin bootstrap; no default password.
+- [x] Implement login/logout/current-session endpoints.
+- [x] Use opaque server-side sessions and HttpOnly/Secure/SameSite cookies.
+- [x] Add CSRF, login throttling, generic auth errors, request limits, and security headers.
+- [x] Keep public service listing read-only and limited to enabled services.
 
 ### Phase 2 — Frontend
 - [ ] Add Vue 3 + Vite using the existing Control Deck visual direction.
@@ -68,4 +68,4 @@ Replace the prototype with a public portal, owner login, and admin console while
 
 ## Current status
 
-Phase 0 repository inspection and SQLite x64/ARM64 runtime verification are complete. The first backend persistence slice (schema, migration runner, and idempotent legacy import) is implemented; authentication and HTTP integration remain next. The deploy script expects the v0.1 file layout and health-checks port 4189; v2 packaging and health-check changes must be coordinated. The checked-in registry has two legacy definitions, but production data has not been read or modified. Phase 1 is in progress: initial persistence schema, migration runner, and legacy registry importer are implemented and covered by CI tests.
+Phase 0 repository inspection and SQLite x64/ARM64 runtime verification are complete. The backend persistence slice and authentication API are implemented on the authentication feature branch; CI verification and login UI remain next. The deploy script expects the v0.1 file layout and health-checks port 4189; v2 packaging and health-check changes must be coordinated. The checked-in registry has two legacy definitions, but production data has not been read or modified. Phase 1 is in progress: initial persistence schema, migration runner, and legacy registry importer are implemented and covered by CI tests.
