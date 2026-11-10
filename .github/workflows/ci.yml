@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      check_vps_ssh:
+        description: Run a read-only SSH connectivity check using the prod environment
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portal-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  quality:
+    name: Node checks and HTTP smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Syntax checks
+        run: |
+          set -euo pipefail
+          node --check src/server.js
+          node --check public/app.js
+
+      - name: Start portal and smoke-test HTTP endpoints
+        run: |
+          set -euo pipefail
+          HOST=127.0.0.1 PORT=4189 ADMIN_TOKEN=ci-smoke-token node src/server.js > "$RUNNER_TEMP/portal.log" 2>&1 &
+          SERVER_PID=$!
+          cleanup() {
+            kill "$SERVER_PID" 2>/dev/null || true
+            wait "$SERVER_PID" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          ready=0
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error http://127.0.0.1:4189/api/health > "$RUNNER_TEMP/health.json"; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+              cat "$RUNNER_TEMP/portal.log"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          test "$ready" -eq 1 || { cat "$RUNNER_TEMP/portal.log"; exit 1; }
+          node -e 'const h=require(process.argv[1]); if(h.status!=="ok" || h.service!=="nhkhuy-portal") process.exit(1)' "$RUNNER_TEMP/health.json"
+          curl --fail --silent --show-error http://127.0.0.1:4189/api/services > "$RUNNER_TEMP/services.json"
+          node -e 'const s=require(process.argv[1]); if(!Array.isArray(s) || s.length < 2) process.exit(1)' "$RUNNER_TEMP/services.json"
+
+  vps-ssh-check:
+    name: Read-only VPS SSH check
+    if: github.event_name == 'workflow_dispatch' && inputs.check_vps_ssh
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: prod
+    steps:
+      - name: Validate deployment secrets
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$VPS_HOST" || { echo "::error::Missing prod secret VPS_HOST"; exit 1; }
+          test -n "$VPS_USER" || { echo "::error::Missing prod secret VPS_USER"; exit 1; }
+          test -n "$VPS_SSH_PRIVATE_KEY" || { echo "::error::Missing prod secret VPS_SSH_PRIVATE_KEY"; exit 1; }
+          test -n "$VPS_KNOWN_HOSTS" || { echo "::error::Missing prod secret VPS_KNOWN_HOSTS"; exit 1; }
+          [[ "$VPS_HOST" =~ ^[A-Za-z0-9._:-]+$ ]] || { echo "::error::Invalid VPS_HOST"; exit 1; }
+          [[ "$VPS_USER" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "::error::Invalid VPS_USER"; exit 1; }
+
+          umask 077
+          SSH_DIR="$(mktemp -d)"
+          trap 'rm -rf "$SSH_DIR"' EXIT
+          printf '%s\n' "$VPS_SSH_PRIVATE_KEY" > "$SSH_DIR/id_ed25519"
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > "$SSH_DIR/known_hosts"
+          chmod 600 "$SSH_DIR/id_ed25519" "$SSH_DIR/known_hosts"
+
+          ssh -i "$SSH_DIR/id_ed25519" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o "UserKnownHostsFile=$SSH_DIR/known_hosts" \
+            "$VPS_USER@$VPS_HOST" \
+            'printf "SSH_OK "; id -un; printf "ARCH "; uname -m; printf "NODE "; node --version'
