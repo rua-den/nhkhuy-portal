@@ -11,7 +11,7 @@ const db=openDatabase(DB_PATH);
 const legacyPath=fs.existsSync(path.join(DATA_DIR,'services.json'))?path.join(DATA_DIR,'services.json'):path.join(ROOT,'config','services.json');
 try{importLegacyServices(db,legacyPath)}catch(error){console.error('Legacy registry import failed:',error.message);process.exit(1)}
 const auth=createAuth(db,{secureCookies:process.env.PORTAL_COOKIE_SECURE!=='false'});
-function send(res,status,value,type='application/json; charset=utf-8',extra={}){const headers={'content-type':type,'x-content-type-options':'nosniff','referrer-policy':'strict-origin-when-cross-origin','x-frame-options':'DENY','permissions-policy':'camera=(), microphone=(), geolocation=()','content-security-policy':"default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'",...extra};res.writeHead(status,headers);if(status===204||status===304)return res.end();res.end(type.startsWith('application/json')?JSON.stringify(value):value)}
+function send(res,status,value,type='application/json; charset=utf-8',extra={}){const headers={'content-type':type,'x-content-type-options':'nosniff','referrer-policy':'strict-origin-when-cross-origin','x-frame-options':'DENY','permissions-policy':'camera=(), microphone=(), geolocation=()','content-security-policy':"default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'",'cache-control':'no-store',...(process.env.PORTAL_COOKIE_SECURE!=='false'?{'strict-transport-security':'max-age=15552000'}:{}),...extra};res.writeHead(status,headers);if(status===204||status===304)return res.end();res.end(type.startsWith('application/json')?JSON.stringify(value):value)}
 async function body(req){let raw='',size=0;for await(const chunk of req){size+=chunk.length;if(size>MAX_BODY)throw Object.assign(new Error('Request body too large.'),{status:413});raw+=chunk.toString('utf8')}if(!raw)return {};let value;try{value=JSON.parse(raw)}catch{throw Object.assign(new Error('Invalid JSON body.'),{status:400})}if(!value||typeof value!=='object'||Array.isArray(value))throw Object.assign(new Error('JSON body must be an object.'),{status:400});return value}
 function sameOrigin(req){const origin=req.headers.origin;if(!origin)return true;try{return new URL(origin).host===req.headers.host}catch{return false}}
 function csrf(req,user){return sameOrigin(req)&&auth.csrfValid(user,req.headers['x-csrf-token'])}
@@ -58,7 +58,7 @@ const server=http.createServer(async(req,res)=>{
    }
    return send(res,404,{error:'Not found.'});
   }
-  if(pathname.startsWith('/api/'))return send(res,404,{error:'Not found.'});
+  if(pathname.startsWith('/api/'))return send(res,404,{error:'Not found.'});\n  if(pathname==='/admin.html'&&!auth.userFor(req)){res.writeHead(302,{'location':'/login.html','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end()}
   let requested;try{requested=decodeURIComponent(pathname)}catch{return send(res,400,'Bad request.','text/plain; charset=utf-8')}
   if(requested==='/')requested='/index.html';
   const file=path.resolve(PUBLIC,'.'+requested);if(file!==PUBLIC&&!file.startsWith(PUBLIC+path.sep))return send(res,403,'Forbidden.','text/plain; charset=utf-8');
