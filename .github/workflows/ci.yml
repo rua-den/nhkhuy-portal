@@ -38,6 +38,9 @@ jobs:
           set -euo pipefail
           node --check src/server.js
           node --check public/app.js
+          node --check src/auth/service.js
+          node --check src/auth/password.js
+          node --check src/cli/bootstrap-admin.js
           npm test
 
       - name: Start portal and smoke-test HTTP endpoints
