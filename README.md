@@ -4,7 +4,7 @@ Personal portal and initial service registry for `nhkhuy.run.place`.
 
 ## v0.1 scope
 
-- Dark responsive portal.
+- Responsive terminal-style (TUI-inspired) web console.
 - Public read-only service listing.
 - Local JSON registry.
 - Token-protected admin API to list, register, enable/disable services.
@@ -22,7 +22,7 @@ They are listed as `managedProxy: false`; existing routing stays under current C
 
 ## Architecture
 
-Browser -> existing Caddy HTTPS -> portal on `127.0.0.1:4180`.
+Browser -> existing Caddy HTTPS -> portal on `127.0.0.1:4189`.
 Portal -> `/api/services` -> JSON registry.
 Admin -> `/api/admin/*` with Bearer token.
 
@@ -43,7 +43,7 @@ npm run check
 ADMIN_TOKEN=dev-token node src/server.js
 ```
 
-Open `http://127.0.0.1:4180`.
+Open `http://127.0.0.1:4189`.
 
 Admin API example:
 
