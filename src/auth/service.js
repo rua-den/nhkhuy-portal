@@ -4,7 +4,8 @@ const {hashPassword,verifyPassword}=require('./password');
 const COOKIE='portal_session',TTL=12*60*60*1000,sha=s=>crypto.createHash('sha256').update(s).digest('hex');
 function parseCookies(header=''){const result={};for(const part of header.split(';')){const i=part.indexOf('=');if(i<1)continue;try{result[part.slice(0,i).trim()]=decodeURIComponent(part.slice(i+1).trim())}catch{}}return result}
 function createAuth(db,{secureCookies=true}={}){
- const attempts=new Map();\n const dummyPassword=hashPassword(crypto.randomBytes(32).toString('hex'));
+ const attempts=new Map();
+ const dummyPassword=hashPassword(crypto.randomBytes(32).toString('hex'));
  const audit=(uid,action)=>db.prepare('INSERT INTO audit_events(actor_user_id,action,target_type,created_at) VALUES(?,?,?,?)').run(uid,action,'auth',new Date().toISOString());
  function retryAfter(key){const v=attempts.get(key);if(!v)return 0;const left=v.until-Date.now();if(left<=0){attempts.delete(key);return 0}return Math.ceil(left/1000)}
  function failed(key){const v=attempts.get(key)||{count:0,until:0};v.count++;if(v.count>=5){v.until=Date.now()+Math.min(15*60_000,30_000*2**Math.min(v.count-5,5));v.count=0}attempts.set(key,v);if(attempts.size>2000){for(const [k,x] of attempts)if(x.until<Date.now())attempts.delete(k)}}
