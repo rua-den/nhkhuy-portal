@@ -6,7 +6,7 @@ _Last updated: 2026-11-10_
 
 - Main: `f9abb6fe44997c7f8189c35f71063b49ae722148`
 - Working branch: `feat/portal-authentication`
-- Draft PR: [#3](https://github.com/rua-den/nhkhuy-portal/pull/3)
+- PR: [#3](https://github.com/rua-den/nhkhuy-portal/pull/3) (ready for review; CI pending)
 - Production: https://nhkhuy.run.place
 
 ## Delivery status
