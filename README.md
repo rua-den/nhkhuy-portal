@@ -6,7 +6,7 @@ Personal portal and initial service registry for `nhkhuy.run.place`.
 
 - Responsive terminal-style (TUI-inspired) web console.
 - Public read-only service listing.
-- Local JSON registry.
+- SQLite service registry with a one-time, metadata-preserving JSON import.
 - Single-owner login and session-protected admin console.
 - systemd deployment template for Oracle Linux/Ubuntu ARM64.
 - DNS diagnostic helper.
@@ -31,7 +31,7 @@ No Caddy Admin API is exposed. The service binds only to loopback.
 ## Requirements
 
 - Linux ARM64 or x86_64
-- Node.js 20+
+- Node.js 22.23.2
 - Existing Caddy installation
 - DNS A/AAAA for root domain to VPS
 - For future automatic subdomains: wildcard `*.nhkhuy.run.place` record to VPS
