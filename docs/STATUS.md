@@ -19,7 +19,7 @@ _Last updated: 2026-11-10_
 | SQLite runtime choice | Verified in CI | Node 22.23.2 built-in node:sqlite; x64 + ARM64 CI passed |
 | Backend persistence | First slice implemented | SQLite schema, migrations, JSON import, tests |
 | Backend/auth | Implemented on feature branch; CI pending | Owner bootstrap, scrypt, opaque sessions, cookie, CSRF, throttling, audit events, authenticated service API |
-| Frontend/admin | Not started | Existing public static UI remains v0.1 |
+| Frontend/admin | Basic static login and owner console implemented; Vue migration pending | login.html/login.js and protected admin.html/admin.js |
 | Staging | Not started | No staging service/data/port created |
 | Production cutover | Not started | v0.1 remains rollback target |
 
