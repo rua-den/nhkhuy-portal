@@ -18,7 +18,7 @@ _Last updated: 2026-11-10_
 | Repository/deploy inspection | Complete | deploy-release.sh, bootstrap.sh, systemd unit, CI |
 | SQLite runtime choice | Verified in CI | Node 22.23.2 built-in node:sqlite; x64 + ARM64 CI passed |
 | Backend persistence | First slice implemented | SQLite schema, migrations, JSON import, tests |
-| Backend/auth | Not started | Authentication and HTTP integration remain |
+| Backend/auth | Implemented on feature branch; CI pending | Owner bootstrap, scrypt, opaque sessions, cookie, CSRF, throttling, audit events, authenticated service API |
 | Frontend/admin | Not started | Existing public static UI remains v0.1 |
 | Staging | Not started | No staging service/data/port created |
 | Production cutover | Not started | v0.1 remains rollback target |
@@ -33,7 +33,7 @@ _Last updated: 2026-11-10_
 
 ## Next
 
-1. Integrate persistence with HTTP APIs and implement owner bootstrap/auth/session/CSRF/rate limiting.
+1. Run auth/API integration tests and complete login UI.
 2. Add API integration tests and then build the Vue admin UI.
 3. Update release packaging and staging only after the backend contracts are stable.
 
