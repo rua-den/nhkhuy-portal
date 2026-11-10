@@ -20,6 +20,7 @@ async function loadServices() {
     const response = await fetch("/api/services", {cache:"no-store"});
     if (!response.ok) throw new Error("registry unavailable");
     const services = await response.json();
+    document.querySelector("#registry-status").innerHTML = "<i></i> CONNECTED";
     count.textContent = String(services.length).padStart(2, "0");
     if (!services.length) {
       root.innerHTML = '<div class="terminal-message">[ EMPTY ] No services registered. Awaiting configuration<span class="cursor">_</span></div>';
@@ -37,6 +38,7 @@ async function loadServices() {
     }).join("");
   } catch {
     count.textContent = "--";
+    document.querySelector("#registry-status").innerHTML = "<i></i> UNREACHABLE";
     root.innerHTML = '<div class="terminal-message error">[ ERROR ] Could not reach the service registry. Check the portal process<span class="cursor">_</span></div>';
   }
 }
