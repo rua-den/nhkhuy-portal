@@ -2,73 +2,70 @@
 
 ## Goal
 
-Replace the prototype experience with a real public portal + owner login + admin console while keeping the production v0.1 app available for rollback.
+Replace the prototype with a public portal, owner login, and admin console while keeping production v0.1 available for rollback.
 
-## Constraints / invariants
+## Constraints
 
-- Production VPS: ARM64, 1 vCPU, 5.8 GiB RAM, Node.js 22.23.2.
-- Keep one app process; Vue is compiled to static files.
-- Do not modify Wedding, 9Router, their data, processes, ports, or Caddy site blocks.
-- Keep current v0.1 service on 127.0.0.1:4189 until v2 is verified.
-- No production deployment from a feature branch. CI must test feature branches; production deploy remains gated to main.
-- Do not expose secrets in GitHub Actions logs or browser storage.
-- Preserve current public service URLs and service registry content.
+- VPS: ARM64, 1 vCPU, 5.8 GiB RAM, Node.js 22.23.2.
+- One app process; Vue compiles to static files.
+- Never modify Wedding, 9Router, their data/processes/ports, or their Caddy blocks.
+- Keep v0.1 on 127.0.0.1:4189 until v2 is verified.
+- Feature branches run CI; production deployment remains main-only.
+- Never expose secrets or store auth tokens in browser storage.
+- Preserve public service URLs and registry metadata.
+- Avoid native SQLite addons unless target-OS ARM64 packaging is proven.
 
 ## Delivery phases
 
 ### Phase 0 — Architecture and repository baseline
-- [x] Record ADR-0001 for a lightweight Node/Vue/SQLite architecture.
-- [ ] Add implementation plan and acceptance criteria.
-- [ ] Inspect the complete deploy script and existing CI packaging contract before changing deployment.
-- [ ] Confirm current production service registry schema and take a read-only backup plan.
+- [x] Record ADR-0001.
+- [x] Add implementation plan and acceptance criteria.
+- [x] Inspect deploy-release.sh, bootstrap.sh, systemd unit, and CI packaging contract.
+- [x] Confirm checked-in registry schema and production data path; production data itself remains uninspected and must not be assumed to match Git.
+- [x] Select built-in Node 22 SQLite as candidate; ARM64 runtime verification remains a CI gate.
 
 ### Phase 1 — Backend foundation
-- [ ] Split API, configuration, persistence, auth, and static hosting into separate modules.
+- [ ] Split API, configuration, persistence, auth, and static hosting.
 - [ ] Add SQLite schema/migrations for users, sessions, services, and audit events.
-- [ ] Implement idempotent import from the existing services.json.
-- [ ] Add one-time admin bootstrap; never create a default password.
+- [ ] Idempotently import existing services.json.
+- [ ] Add one-time admin bootstrap; no default password.
 - [ ] Implement login/logout/current-session endpoints.
-- [ ] Use server-side opaque sessions and HttpOnly/Secure/SameSite cookies.
-- [ ] Add CSRF validation, login throttling, generic auth errors, request limits, and security headers.
+- [ ] Use opaque server-side sessions and HttpOnly/Secure/SameSite cookies.
+- [ ] Add CSRF, login throttling, generic auth errors, request limits, and security headers.
 - [ ] Keep public service listing read-only and limited to enabled services.
 
 ### Phase 2 — Frontend
-- [ ] Add Vue 3 + Vite frontend with the existing Control Deck visual direction.
-- [ ] Public home: service registry and system status.
-- [ ] Login page.
-- [ ] Authenticated admin dashboard: list services, edit safe metadata, enable/disable.
-- [ ] Account settings: change password and revoke sessions.
-- [ ] Audit log view.
-- [ ] Ensure no secrets/tokens are stored in browser storage.
+- [ ] Add Vue 3 + Vite using the existing Control Deck visual direction.
+- [ ] Public home, login, authenticated admin dashboard, account settings, audit log.
+- [ ] No secrets/tokens in browser storage.
 
 ### Phase 3 — Verification
 - [ ] Unit tests for validation, password hashing, sessions, and authorization.
-- [ ] Integration tests for login/logout, CSRF, rate limits, CRUD, and public data filtering.
+- [ ] Integration tests for login/logout, CSRF, rate limits, CRUD, and public filtering.
 - [ ] Dependency and production-build checks.
-- [ ] Build and smoke-test a Linux ARM64 artifact; verify SQLite native dependency compatibility before selecting the final driver.
-- [ ] Test migration against a copy of the current registry, including rollback.
+- [ ] Verify built-in SQLite on Linux x64 and ARM64 before production adoption.
+- [ ] Test migration against a copy of the registry, including rollback.
 
 ### Phase 4 — Staging and cutover
-- [ ] Deploy v2 to a separate loopback port and separate release directory.
-- [ ] Use a separate staging data directory; never point staging at production data.
+- [ ] Separate staging release, loopback port, and data directory.
 - [ ] Verify health, login, cookie flags, CSRF, service listing, admin CRUD, and restart persistence.
 - [ ] Back up production data and current symlink.
-- [ ] Cut over only the root-domain Caddy upstream after explicit verification; preserve Wedding and 9Router blocks byte-for-byte.
-- [ ] Keep v0.1 release available for immediate rollback.
+- [ ] Cut over only root-domain Caddy upstream; preserve Wedding and 9Router blocks byte-for-byte.
+- [ ] Keep v0.1 release for immediate rollback.
 
 ## Acceptance criteria
 
 - Public root page works over HTTPS.
-- Unauthenticated users can only see enabled public services.
+- Unauthenticated users see only enabled public services.
 - Admin pages and APIs reject unauthenticated requests.
 - Login is rate-limited; session cookie is HttpOnly, Secure, and SameSite.
-- State-changing authenticated requests require valid CSRF protection.
-- Passwords are never stored or logged in plaintext.
-- Service changes and sessions survive app restarts.
-- No additional always-on service is introduced.
+- State-changing authenticated requests require CSRF.
+- Passwords are never stored/logged in plaintext.
+- Service changes and sessions survive restarts.
+- No extra always-on service.
 - Wedding and 9Router remain reachable and unchanged.
-- A failed deployment automatically or manually rolls back to the current v0.1 release.
+- Failed deployment rolls back to v0.1.
 
 ## Current status
 
-Architecture is recorded in ADR-0001. Implementation has not started; the next code change follows after the deployment contract and ARM64 SQLite strategy are verified.
+Phase 0 repository inspection is complete. The deploy script expects the v0.1 file layout and health-checks port 4189; v2 packaging and health-check changes must be coordinated. The checked-in registry has two legacy definitions, but production data has not been read or modified. Phase 1 has not started.
