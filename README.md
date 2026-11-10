@@ -7,7 +7,7 @@ Personal portal and initial service registry for `nhkhuy.run.place`.
 - Responsive terminal-style (TUI-inspired) web console.
 - Public read-only service listing.
 - Local JSON registry.
-- Token-protected admin API to list, register, enable/disable services.
+- Single-owner login and session-protected admin console.
 - systemd deployment template for Oracle Linux/Ubuntu ARM64.
 - DNS diagnostic helper.
 
@@ -45,23 +45,7 @@ PORTAL_COOKIE_SECURE=false node src/server.js
 
 Open `http://127.0.0.1:4189`. Create the owner account once with `npm run admin:bootstrap -- owner`, then sign in at `/login.html`. For local HTTP only, set `PORTAL_COOKIE_SECURE=false`; never disable Secure cookies in production.
 
-Admin API example:
-
-```bash
-curl -H "Authorization: Bearer $ADMIN_TOKEN" \
-  http://127.0.0.1:4189/api/admin/services
-```
-
-Register service:
-
-```bash
-curl -X POST http://127.0.0.1:4189/api/admin/services \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"id":"demo","name":"Demo","port":4000,"description":"Example app","category":"Experiments"}'
-```
-
-## Deployment outline
+The admin API requires an authenticated session cookie. State-changing requests also require the CSRF token returned by `/api/auth/me` in the `X-CSRF-Token` header. No bearer token is exposed to browser code.\n\n## Deployment outline
 
 1. SSH to VPS and inspect OS/architecture, Node, Caddy, ports, current Caddyfile and systemd units.
 2. Back up `/etc/caddy/Caddyfile` and Caddy data/config.
