@@ -59,7 +59,7 @@ jobs:
   deploy:
     name: Deploy to production VPS
     needs: quality
-    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && vars.CD_ENABLED == 'true' && vars.PROD_CUTOVER_ENABLED == 'true'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && vars.CD_ENABLED == 'true' && vars.PROD_CUTOVER_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: prod

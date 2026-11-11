@@ -89,7 +89,7 @@ Wildcard DNS does not itself issue TLS certificates; Caddy obtains certificates 
 
 ## Security / limitations
 
-- Production deployment is manual (`workflow_dispatch` on `main`) and requires both repository variables `CD_ENABLED=true` and `PROD_CUTOVER_ENABLED=true`. Keep the latter unset/false until the merged release has passed staging verification and rollback checks.
+- Production deployment runs automatically after a push to `main` (with `workflow_dispatch` on `main` as a manual fallback) and requires repository variables `CD_ENABLED=true` and `PROD_CUTOVER_ENABLED=true`, plus the prod environment secrets `VPS_HOST`, `VPS_USER`, `VPS_SSH_PRIVATE_KEY`, and `VPS_KNOWN_HOSTS`. Keep the latter variable unset/false until the merged release has passed staging verification and rollback checks.
 - Never expose port 4189 publicly; Caddy should proxy to loopback.
 - Keep `/etc/nhkhuy-portal/portal.env` mode 0600.
 - Bootstrap one owner account interactively with `npm run admin:bootstrap -- owner`; there is no default account or public registration.
