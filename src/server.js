@@ -3,6 +3,7 @@ const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const {openDatabase}=require('./db/database');
 const {importLegacyServices}=require('./db/import-legacy-services');
 const {createAuth}=require('./auth/service');
+const {createTtReq}=require('./tt-req/service');
 const ROOT=path.resolve(__dirname,'..'),DATA_DIR=path.resolve(process.env.PORTAL_DATA_DIR||path.join(ROOT,'data'));
 const DB_PATH=path.resolve(process.env.PORTAL_DB_PATH||path.join(DATA_DIR,'portal.sqlite'));
 const PUBLIC=path.join(ROOT,'public'),PORT=Number(process.env.PORT||4189),HOST=process.env.HOST||'127.0.0.1';
@@ -12,13 +13,14 @@ const db=openDatabase(DB_PATH);
 const legacyPath=fs.existsSync(path.join(DATA_DIR,'services.json'))?path.join(DATA_DIR,'services.json'):path.join(ROOT,'config','services.json');
 try{importLegacyServices(db,legacyPath)}catch(error){console.error('Legacy registry import failed:',error.message);process.exit(1)}
 const auth=createAuth(db,{secureCookies:process.env.PORTAL_COOKIE_SECURE!=='false'});
+const ttReq=createTtReq({dataFile:path.join(DATA_DIR,'tt-req.json')});
 function send(res,status,value,type='application/json; charset=utf-8',extra={}){const headers={'content-type':type,'x-content-type-options':'nosniff','referrer-policy':'strict-origin-when-cross-origin','x-frame-options':'DENY','cross-origin-resource-policy':'same-origin','x-dns-prefetch-control':'off','permissions-policy':'camera=(), microphone=(), geolocation=()','content-security-policy':"default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'",'cache-control':'no-store',...(process.env.PORTAL_COOKIE_SECURE!=='false'?{'strict-transport-security':'max-age=15552000'}:{}),...extra};res.writeHead(status,headers);if(status===204||status===304)return res.end();res.end(type.startsWith('application/json')?JSON.stringify(value):value)}
 async function body(req){let raw='',size=0;for await(const chunk of req){size+=chunk.length;if(size>MAX_BODY)throw Object.assign(new Error('Request body too large.'),{status:413});raw+=chunk.toString('utf8')}if(!raw)return {};let value;try{value=JSON.parse(raw)}catch{throw Object.assign(new Error('Invalid JSON body.'),{status:400})}if(!value||typeof value!=='object'||Array.isArray(value))throw Object.assign(new Error('JSON body must be an object.'),{status:400});return value}
 function sameOrigin(req){const origin=req.headers.origin;if(!origin)return true;try{const parsed=new URL(origin),forwarded=req.headers['x-forwarded-proto'],protocol=forwarded?forwarded.toString().split(',').at(-1).trim():(req.socket.encrypted?'https':'http');return parsed.host===req.headers.host&&parsed.protocol===protocol+':'}catch{return false}}
 function csrf(req,user){return sameOrigin(req)&&auth.csrfValid(user,req.headers['x-csrf-token'])}
 function listServices(){return db.prepare('SELECT metadata_json FROM services WHERE enabled=1 ORDER BY name COLLATE NOCASE').all().map(row=>JSON.parse(row.metadata_json)).map(({id,name,description,url,category,icon})=>({id,name,description,url,category,icon}))}
 function allServices(){return db.prepare('SELECT metadata_json,enabled FROM services ORDER BY name COLLATE NOCASE').all().map(row=>({...JSON.parse(row.metadata_json),enabled:Boolean(row.enabled)}))}
-function audit(user,action,targetId){db.prepare('INSERT INTO audit_events(actor_user_id,action,target_type,target_id,created_at) VALUES(?,?,?,?,?)').run(user.id,action,'service',targetId||null,new Date().toISOString())}
+function audit(user,action,targetId,targetType='service'){db.prepare('INSERT INTO audit_events(actor_user_id,action,target_type,target_id,created_at) VALUES(?,?,?,?,?)').run(user.id,action,targetType,targetId||null,new Date().toISOString())}
 function safeId(s){return /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(s)}
 function safePort(n){return Number.isInteger(n)&&n>=1024&&n<=65535}
 const server=http.createServer(async(req,res)=>{
@@ -60,14 +62,28 @@ const server=http.createServer(async(req,res)=>{
    }
    return send(res,404,{error:'Not found.'});
   }
+  if(pathname.startsWith('/api/tt-req/')){
+   const user=auth.userFor(req);if(!user)return send(res,401,{error:'Authentication required.'});
+   if(!sameOrigin(req))return send(res,403,{error:'Request rejected.'});
+   if(!['GET','POST','PUT','DELETE'].includes(req.method))return send(res,405,{error:'Method not allowed.'},{'allow':'GET, POST, PUT, DELETE'});
+   if(req.method!=='GET'&&!csrf(req,user))return send(res,403,{error:'Request rejected.'});
+   const payload=req.method==='GET'?{}:await body(req);
+   const result=await ttReq.handle(req.method,pathname,payload);
+   if(result.status<400&&pathname!=='/api/tt-req/parse-curl'&&pathname!=='/api/tt-req/send'){
+    const action=req.method==='POST'&&pathname==='/api/tt-req/jobs'?'tt_req.job.create':req.method==='PUT'?'tt_req.job.update':req.method==='DELETE'?'tt_req.job.delete':req.method==='POST'&&pathname.endsWith('/run')?'tt_req.job.run':req.method==='POST'&&pathname.endsWith('/toggle')?'tt_req.job.toggle':null;
+    if(action)audit(user,action,pathname.split('/')[4]||result.body.id||null,'tt_req');
+   }
+   return send(res,result.status,result.body);
+  }
   if(pathname.startsWith('/api/'))return send(res,404,{error:'Not found.'});
   let requested;try{requested=decodeURIComponent(pathname)}catch{return send(res,400,'Bad request.','text/plain; charset=utf-8')}
   const currentUser=auth.userFor(req);
   if(!currentUser&& !['/login.html','/login.js','/styles.css'].includes(requested)){res.writeHead(302,{'location':'/login.html','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end()}
   if(currentUser&&requested==='/login.html'){res.writeHead(302,{'location':'/','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end()}
   if(requested==='/')requested='/index.html';
+  if(requested==='/tt-req'||requested==='/tt-req/')requested='/tt-req/index.html';
   const file=path.resolve(PUBLIC,'.'+requested);if(file!==PUBLIC&&!file.startsWith(PUBLIC+path.sep))return send(res,403,'Forbidden.','text/plain; charset=utf-8');
-  fs.readFile(file,(error,data)=>{if(error)return send(res,404,'Not found.','text/plain; charset=utf-8');const ext=path.extname(file),types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};send(res,200,data,types[ext]||'application/octet-stream',{'cache-control':ext==='.html'?'no-cache':'public, max-age=3600'})});
+  fs.readFile(file,(error,data)=>{if(error)return send(res,404,'Not found.','text/plain; charset=utf-8');const ext=path.extname(file),types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.json':'application/json; charset=utf-8','.ico':'image/x-icon'};send(res,200,data,types[ext]||'application/octet-stream',{'cache-control':ext==='.html'?'no-cache':'public, max-age=3600'})});
  }catch(error){if(res.headersSent){res.destroy();return}const status=Number.isInteger(error.status)?error.status:500;if(status===500)console.error('Request failed:',error.message);send(res,status,{error:status===500?'Internal server error.':error.message})}
 });
 server.headersTimeout=10_000;server.requestTimeout=30_000;server.keepAliveTimeout=5_000;
