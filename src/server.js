@@ -65,7 +65,7 @@ const server=http.createServer(async(req,res)=>{
   if(pathname.startsWith('/api/tt-req/')){
    const user=auth.userFor(req);if(!user)return send(res,401,{error:'Authentication required.'});
    if(!sameOrigin(req))return send(res,403,{error:'Request rejected.'});
-   if(!['GET','POST','PUT','DELETE'].includes(req.method))return send(res,405,{error:'Method not allowed.'},{'allow':'GET, POST, PUT, DELETE'});
+   if(!['GET','POST','PUT','DELETE'].includes(req.method))return send(res,405,{error:'Method not allowed.'},'application/json; charset=utf-8',{'allow':'GET, POST, PUT, DELETE'});
    if(req.method!=='GET'&&!csrf(req,user))return send(res,403,{error:'Request rejected.'});
    const payload=req.method==='GET'?{}:await body(req);
    const result=await ttReq.handle(req.method,pathname,payload);
