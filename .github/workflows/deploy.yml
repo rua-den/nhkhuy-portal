@@ -49,8 +49,12 @@ jobs:
           done
           test "$ready" -eq 1 || { cat "$RUNNER_TEMP/portal.log"; exit 1; }
           node -e 'const h=require(process.argv[1]); if(h.status!=="ok" || h.service!=="nhkhuy-portal") process.exit(1)' "$RUNNER_TEMP/health.json"
-          curl --fail --silent --show-error http://127.0.0.1:4189/api/services > "$RUNNER_TEMP/services.json"
-          node -e 'const s=require(process.argv[1]); if(!Array.isArray(s) || s.length < 2) process.exit(1)' "$RUNNER_TEMP/services.json"
+          services_status="$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:4189/api/services)"
+          test "$services_status" = "401"
+          root_status="$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:4189/)"
+          test "$root_status" = "302"
+          curl --fail --silent --show-error http://127.0.0.1:4189/login.html > "$RUNNER_TEMP/login.html"
+          grep -q "OWNER_LOGIN" "$RUNNER_TEMP/login.html"
 
   deploy:
     name: Deploy to production VPS
