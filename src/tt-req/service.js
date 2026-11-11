@@ -41,7 +41,14 @@ function prepareImport(payload,currentCount){
    const candidate={...raw,steps:Array.isArray(raw.steps)?raw.steps.map(step=>({...step})):raw.steps};
    for(const step of candidate.steps||[]){
     let u;try{u=new URL(String(step.url||''));}catch{throw Error('Invalid request URL.');}
+    if(u.username||u.password)throw Error('Credentials in request URLs are not allowed; use a clean URL.');
+    if(u.hostname.toLowerCase()==='like.vn'&&/mua-view-tiktok/i.test(u.pathname))throw Error('This TikTok view-purchase workflow is not supported.');
+    for(const [key] of [...u.searchParams.entries()])if(SENSITIVE_KEY.test(key)){u.searchParams.delete(key);warnings.push('Sensitive URL query parameters were removed.');}
     step.url=u.toString();
+    const headers=headersOf(step.headers),clean={};
+    for(const [k,v] of Object.entries(headers)){if(SENSITIVE_KEY.test(k)){warnings.push('Sensitive request headers were removed.');continue;}clean[k]=v;}
+    step.headers=clean;
+    if(Array.isArray(step.formFields))step.formFields=step.formFields.filter(f=>!SENSITIVE_KEY.test(String(f.k||'')));
     if(typeof step.body==='string'&&step.body.length){
      try{const parsed=JSON.parse(step.body),scrubbed=scrubObject(parsed);if(JSON.stringify(scrubbed)!==JSON.stringify(parsed)){step.body=JSON.stringify(scrubbed);warnings.push('Sensitive JSON body fields were removed.');}}catch{if(/(?:bearer\s+\S+|(?:api[-_]?)?(?:token|secret|password|session(?:id)?|cookie|authorization|csrf[-_]?token|client[-_]?secret|access[-_]?key)\s*[:=])/i.test(step.body))throw Error('Body appears to contain embedded credentials; remove them before importing.');}
     }
