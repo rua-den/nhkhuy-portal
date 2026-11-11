@@ -3,7 +3,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const MAX_BODY=32768,MAX_RESPONSE=1048576,MAX_JOBS=30,MAX_STEPS=12,HISTORY=100,TIMEOUT=12000;
 const blocked=new net.BlockList();
 for(const [ip,bits] of [['0.0.0.0',8],['10.0.0.0',8],['100.64.0.0',10],['127.0.0.0',8],['169.254.0.0',16],['172.16.0.0',12],['192.0.0.0',24],['192.0.2.0',24],['192.168.0.0',16],['198.18.0.0',15],['198.51.100.0',24],['203.0.113.0',24],['224.0.0.0',4],['240.0.0.0',4]])blocked.addSubnet(ip,bits,'ipv4');
-for(const [ip,bits] of [['::',128],['::1',128],['fc00::',7],['fe80::',10],['ff00::',8],['2001:db8::',32],['2001:10::',28]])blocked.addSubnet(ip,bits,'ipv6');
+for(const [ip,bits] of [['::',96],['::ffff:0:0',96],['fc00::',7],['fe80::',10],['ff00::',8],['2001::',23],['2001:db8::',32],['2001:10::',28],['2002::',16],['64:ff9b::',96]])blocked.addSubnet(ip,bits,'ipv6');
 function checkIp(ip,family){if(family===6&&ip.toLowerCase().startsWith('::ffff:')){const mapped=ip.slice(7);if(net.isIP(mapped)===4)return checkIp(mapped,4);}if(!net.isIP(ip)||blocked.check(ip,family===6?'ipv6':'ipv4'))throw Error('Destination resolves to a non-public IP address.');}
 async function resolve(host){const family=net.isIP(host);if(family){checkIp(host,family);return{address:host,family};}const rows=await dns.lookup(host,{all:true,verbatim:true});if(!rows.length)throw Error('DNS lookup returned no addresses.');for(const row of rows)checkIp(row.address,row.family);return rows[0];}
 function vars(s,v){return typeof s==='string'?s.replace(/\{\{\s*([\w.-]+)\s*\}\}/g,(m,k)=>Object.prototype.hasOwnProperty.call(v,k)?String(v[k]):m):s;}
