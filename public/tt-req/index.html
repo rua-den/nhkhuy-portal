@@ -1,21 +1,208 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080d0b"><title>TT VIEW // REQUEST AUTOMATION</title><link rel="stylesheet" href="/tt-req/style.css"></head>
-<body><div class="ambient"></div><div class="app">
-<aside class="sidebar"><a class="brand" href="/"><span class="brand-icon">TT</span><span><b>TT VIEW</b><small>REQUEST AUTOMATION</small></span></a>
-<div class="side-label">WORKSPACE</div><nav class="nav"><button class="nav-item active" data-tab="monitor"><span>◫</span> MONITOR <i></i></button><button class="nav-item" data-tab="send"><span>⌁</span> SEND REQUEST</button><button class="nav-item" data-tab="jobs"><span>▤</span> JOBS <em id="nav-job-count">00</em></button><button class="nav-item" data-tab="docs"><span>⌘</span> DOCS</button></nav>
-<div class="side-bottom"><div class="connection"><i></i><span>SERVER CONNECTED</span></div><a class="back-link" href="/">← BACK TO PORTAL</a><small>PRIVATE WORKSPACE · OWNER ONLY</small></div></aside>
-<main class="main"><header class="topbar"><div><div class="eyebrow">NHKHUY / TOOLS / TT VIEW / HTTP WORKBENCH</div><h1 id="page-title">Monitor <span>overview</span></h1></div><div class="top-actions"><span class="live"><i></i> LIVE</span><span id="clock">--:--:--</span><button id="refresh" class="icon-btn" title="Refresh">↻</button></div></header>
-<section id="monitor" class="page active"><div class="welcome"><div><div class="eyebrow">SYSTEM OVERVIEW</div><h2>Your requests, <span>under control.</span></h2><p>Monitor scheduled jobs, inspect recent runs and keep your endpoints healthy.</p></div><button class="primary" data-go="jobs">＋ NEW JOB</button></div>
-<div class="stats"><article><small>TOTAL JOBS</small><strong id="metric-jobs">—</strong><span>registered workflows</span></article><article><small>ACTIVE SCHEDULES</small><strong id="metric-enabled">—</strong><span>running automatically</span></article><article><small>SUCCESS RATE</small><strong id="metric-rate">—</strong><span>based on recent runs</span></article><article><small>LAST ACTIVITY</small><strong id="metric-last">—</strong><span>latest execution</span></article></div>
-<div class="section-head"><div><div class="eyebrow">WORKSPACE</div><h3>Recent jobs</h3></div><button class="text-btn" data-go="jobs">VIEW ALL JOBS ↗</button></div><div id="monitor-list" class="job-grid"></div>
-<div class="section-head history-head"><div><div class="eyebrow">ACTIVITY</div><h3>Latest execution</h3></div></div><div id="recent-activity" class="activity-list"><div class="empty">Waiting for job activity…</div></div></section>
-<section id="send" class="page"><div class="section-head"><div><div class="eyebrow">HTTP CLIENT</div><h3>Send a request</h3><p class="muted">Make a one-off request to a public HTTP(S) endpoint.</p></div><button id="parse-curl" class="secondary">IMPORT cURL</button></div><div class="panel"><label>REQUEST</label><div class="request-line"><select id="method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option><option>OPTIONS</option></select><input id="url" placeholder="https://api.example.com/v1/resource"><button id="send" class="primary">SEND ↗</button></div><div class="two-col"><div><label>HEADERS <small>JSON OBJECT</small></label><textarea id="headers" rows="9">{}</textarea></div><div><label>BODY <small>RAW / JSON</small></label><textarea id="body" rows="9" placeholder='{"key":"value"}'></textarea></div></div></div><div id="response" class="panel response hidden"></div></section>
-<section id="jobs" class="page"><div class="section-head"><div><div class="eyebrow">AUTOMATION</div><h3>Scheduled jobs</h3><p class="muted">Build reusable request flows and run them on a schedule.</p></div><button id="new-job" class="primary">＋ CREATE JOB</button></div>
-<div class="toolbar"><span id="jobs-total">0 jobs</span><button id="import-toggle" class="secondary">IMPORT JSON</button></div>
-<div id="import-panel" class="panel hidden"><b>IMPORT FROM JSON</b><p class="muted">Preview before importing. Jobs are created paused; no schedules will start automatically.</p><div class="request-line"><input id="import-file" type="file" accept="application/json,.json"><button id="import-preview-btn" class="secondary">PREVIEW</button></div><div id="import-preview" class="response hidden"></div><button id="import-confirm" class="primary" disabled>IMPORT PAUSED JOBS</button></div>
-<div id="jobs-list" class="job-grid"></div>
-<div id="job-editor" class="panel editor hidden"><div class="editor-head"><div><div class="eyebrow">CONFIGURATION</div><h3 id="editor-title">Create a job</h3></div><button id="close-editor" class="icon-btn">×</button></div><div class="form-grid"><div><label>JOB NAME</label><input id="job-name" placeholder="API health monitor"></div><div><label>INTERVAL <small>SECONDS · 0 = MANUAL ONLY</small></label><input id="job-interval" type="number" min="0" step="60" value="0"></div></div><label>REQUEST STEPS <small>JSON ARRAY · 1–12 STEPS</small></label><textarea id="job-steps" rows="13">[
-  { "name": "Health check", "method": "GET", "url": "https://example.com", "headers": {}, "body": "", "asserts": [] }
-]</textarea><label>VARIABLES <small>JSON OBJECT</small></label><textarea id="job-vars" rows="4">{}</textarea><label class="check"><input id="job-enabled" type="checkbox"> Enable schedule after saving</label><div class="editor-actions"><button id="cancel-job" class="secondary">CANCEL</button><button id="save-job" class="primary">SAVE JOB</button></div></div></section>
-<section id="docs" class="page"><div class="section-head"><div><div class="eyebrow">REFERENCE</div><h3>Documentation</h3><p class="muted">A quick guide to building and operating TT View jobs.</p></div></div><div class="docs-grid"><article class="panel"><span class="doc-index">01</span><h3>Request steps</h3><p>Each job contains 1–12 sequential HTTP requests. Supported methods include GET, POST, PUT, PATCH, DELETE, HEAD and OPTIONS.</p></article><article class="panel"><span class="doc-index">02</span><h3>Variables</h3><p>Use <code>{{variable}}</code> in URLs, headers and request bodies. Extract values from earlier steps to pass data forward.</p></article><article class="panel"><span class="doc-index">03</span><h3>Assertions</h3><p>Validate status, response time or body content. A failed assertion marks the step unsuccessful; stop-on-fail is enabled by default.</p></article><article class="panel"><span class="doc-index">04</span><h3>Scheduling</h3><p>Set an interval of at least 60 seconds to enable automatic runs. Interval 0 keeps a job manual-only.</p></article><article class="panel"><span class="doc-index">05</span><h3>Security limits</h3><p>Requests are restricted to public HTTP(S) destinations on standard ports. Private and reserved IP ranges are blocked; response size and timeout are bounded.</p></article><article class="panel"><span class="doc-index">06</span><h3>Import jobs</h3><p>Import a JSON array or an object containing a jobs array. Preview first; imported jobs are always paused and must be enabled manually.</p></article></div></section>
-<footer><span>TT VIEW <b>•</b> PRIVATE REQUEST AUTOMATION</span><span>ALL TIMES LOCAL · SERVER-SIDE EXECUTION</span></footer></main></div><script src="/tt-req/app.js"></script></body></html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tt-req — HTTP scheduler</title>
+<link rel="stylesheet" href="/tt-req/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/" aria-label="Back to portal"><span class="prompt">›_</span> tt-req <span class="muted">WORKBENCH</span></a>
+  <nav class="tabs">
+    <button class="tab active" data-tab="monitor">monitor</button>
+    <button class="tab" data-tab="send">send</button>
+    <button class="tab" data-tab="joblist">jobs</button>
+    <button class="tab" data-tab="docs">docs</button>
+  </nav>
+  <div class="topbar-actions">
+    <button class="btn btn-primary" id="btn-new-job">+ new job</button>
+  </div>
+</header>
+<div class="portal-back"><a href="/">← back to portal</a><span>private workspace · owner only</span></div>
+
+<main>
+  <!-- ================= MONITOR ================= -->
+  <section id="tab-monitor" class="page active">
+    <div class="page-head">
+      <h1>// monitor</h1>
+      <span class="muted" id="monitor-summary"></span>
+      <label class="chk-inline"><input type="checkbox" id="auto-refresh" checked> auto refresh (3s)</label>
+    </div>
+    <div id="monitor-list" class="job-grid"></div>
+  </section>
+
+  <!-- ================= QUICK SEND ================= -->
+  <section id="tab-send" class="page">
+    <div class="page-head"><h1>// send one-off</h1><span class="muted">chạy thử request, không lưu job</span></div>
+    <div class="send-layout">
+      <div class="col left">
+        <div class="panel">
+          <div class="panel-title">import curl <span class="muted">— dán lệnh curl vào đây</span></div>
+          <textarea id="curl-input" class="input mono tiny" rows="6" placeholder='curl -X POST https://api.example.com/login -H "Content-Type: application/json" -d "{\"user\":\"me\"}"'></textarea>
+          <div class="row gap">
+            <button class="btn" id="btn-parse-curl">⤵ parse curl</button>
+          </div>
+        </div>
+        <div class="panel" id="req-builder">
+          <div class="row gap">
+            <select id="q-method" class="input select method"></select>
+            <input id="q-url" class="input mono grow" placeholder="https://api.example.com/… (hỗ trợ {{var}})">
+          </div>
+          <div class="panel-title m-top">headers</div>
+          <div id="q-headers"></div>
+          <button class="btn btn-ghost sm" data-add-header="q">+ header</button>
+          <div class="panel-title m-top">body</div>
+          <textarea id="q-body" class="input mono tiny" rows="8" placeholder='{"key": "value"}'></textarea>
+          <div class="panel-title m-top">form-data fields <span class="muted">— (-F); values are sent as text</span></div>
+          <div id="q-fields"></div>
+          <button class="btn btn-ghost sm" data-add-field="q">+ field</button>
+        </div>
+        <div class="panel">
+          <div class="panel-title">checks <span class="muted">— assert trước khi coi là success/step sau</span></div>
+          <div id="q-asserts"></div>
+          <button class="btn btn-ghost sm" data-add-assert="q-asserts">+ assert</button>
+        </div>
+        <div class="panel">
+          <div class="panel-title">extract <span class="muted">— lấy giá trị từ response</span></div>
+          <div id="q-extract"></div>
+          <button class="btn btn-ghost sm" data-add-extract="q">+ extract</button>
+        </div>
+        <div class="row">
+          <button class="btn btn-primary" id="btn-send">▶ SEND</button>
+        </div>
+      </div>
+      <div class="col right">
+        <div class="panel">
+          <div class="panel-title">response</div>
+          <div id="send-result" class="response-box muted-empty">…chưa gửi gì</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= JOB LIST ================= -->
+  <section id="tab-joblist" class="page">
+    <div class="page-head"><h1>// jobs</h1><span class="muted" id="joblist-summary"></span></div>
+    <div class="panel import-panel">
+      <div class="panel-title">import jobs <span class="muted">— preview first; imported jobs always start paused</span></div>
+      <div class="row gap"><input id="job-import-file" class="input" type="file" accept="application/json,.json"><button id="job-import-preview" class="btn">preview</button><button id="job-import-confirm" class="btn btn-primary" disabled>import paused</button></div>
+      <div id="job-import-result" class="response-box muted-empty hidden"></div>
+    </div>
+    <div id="joblist" class="job-grid"></div>
+  </section>
+
+  <!-- ================= DOCS ================= -->
+  <section id="tab-docs" class="page">
+    <div class="page-head"><h1>// docs</h1><span class="muted">cách dùng tt-req</span></div>
+    <div class="doc">
+      <h2>1. luồng cơ bản</h2>
+      <div class="flow"><span>import curl / nhập tay</span> <span class="arrow">→</span> <span>test ở tab <b>send</b></span> <span class="arrow">→</span> <span>tạo <b>job</b> + đặt interval</span> <span class="arrow">→</span> <span>job tự bắn hoài</span> <span class="arrow">→</span> <span>xem ở <b>monitor</b></span></div>
+
+      <h2>2. tab — send <span class="tag-soft">one-off</span></h2>
+      <table>
+        <tr><td><b>import curl</b></td><td>dán lệnh curl → bấm <code>parse curl</code>, tự đổ vào form phía dưới. Hỗ trợ: <code>-X</code> <code>-H</code> <code>-d/--data*</code> <code>-F/--form</code> (multipart) <code>-u</code> (basic auth) <code>-b</code> (cookie), line-continuation <code>\</code> (bash) và <code>^</code> (cmd Windows)</td></tr>
+        <tr><td><b>form-data fields</b></td><td><code>-F name=value</code> is sent as a text multipart field. File uploads are not supported.</td></tr>
+        <tr><td><b>checks (assert)</b></td><td>chọn target: <code>status</code> / <code>body</code> / <code>time</code> (ms), op: <code>equals not_equals contains not_contains regex gt lt empty not_empty</code>. Fail → phản hồi đỏ, coi là LỖI</td></tr>
+        <tr><td><b>extract</b></td><td>rút giá trị ra biến theo <b>json dot-path</b> hoặc regex (group 1 mặc định; full match fallback). Biến dùng dạng <code>{{token}}</code> ở URL/headers/body</td></tr>
+      </table>
+
+      <h2>3. tab — jobs &amp; step chaining</h2>
+      <p>Job = danh sách <b>step</b> chạy tuần tự. Step sau chỉ chạy khi assert của step trước <span class="pass">pass</span> (điển hình: step 1 login → rút token → step 2 gọi API kèm <code>{{token}}</code>).</p>
+      <table>
+        <tr><td><b>interval</b></td><td>đơn vị giây. <code>60</code> = bắn mỗi phút. <code>0</code> = không schedule, chỉ chạy tay. Scheduler checks every second.</td></tr>
+        <tr><td><b>schedule chạy liên tục</b></td><td>bật → job bắn mãi (web reload vẫn tự chạy lại). Tắt = paused, chạy bằng nút <code>▶ run now</code></td></tr>
+        <tr><td><b>dừng khi 1 step fail</b></td><td>default ON — step fail thì bỏ qua các step sau trong lần run đó</td></tr>
+        <tr><td><b>variables</b></td><td>biến tĩnh của job, giá trị ở đây ghi đè bởi extract của step (extract chạy sau)</td></tr>
+      </table>
+
+      <h2>4. tab — monitor</h2>
+      <table>
+        <tr><td><b>dot</b></td><td><span class="dot ok" style="display:inline-block;vertical-align:middle"></span> run cuối OK · <span class="dot err" style="display:inline-block;vertical-align:middle"></span> fail · <span class="dot never" style="display:inline-block;vertical-align:middle"></span> chưa chạy bao giờ</td></tr>
+        <tr><td><b>ok-rate %</b></td><td>tỉ lệ run thành công trên lịch sử</td></tr>
+        <tr><td><b>click card</b></td><td>bung 12 run gần nhất → click từng run để xem chi tiết từng step (status, assert, response)</td></tr>
+        <tr><td><b>auto refresh</b></td><td>poll 3s, tắt ô checkbox nếu muốn freeze</td></tr>
+      </table>
+
+      <h2>5. mẹo</h2>
+      <ul>
+        <li>Copy 1 curl từ DevTools (Network → Copy as cURL (bash)) là fastest way dựng request</li>
+        <li>Lịch sử giữ 100 run/job gần nhất trong RAM — restart server là clean, config job nằm trong <code>PORTAL_DATA_DIR/tt-req.json</code></li>
+        <li>Interval tự động tối thiểu là 60 giây; <code>0</code> chỉ chạy thủ công</li>
+        <li><code>{{var}}</code> không tồn tại → giữ nguyên text, không lỗi</li>
+      </ul>
+
+      <h2>6. REST API (nấu script ngoài)</h2>
+      <pre><code>GET    /api/tt-req/jobs              — list + stats
+POST   /api/tt-req/jobs              — tạo job
+PUT    /api/tt-req/jobs/:id          — sửa
+DELETE /api/tt-req/jobs/:id          — xóa
+POST   /api/tt-req/jobs/:id/run      — chạy ngay 1 lần
+POST   /api/tt-req/jobs/:id/toggle   — bật/tắt schedule
+GET    /api/tt-req/jobs/:id/runs     — lịch sử run
+POST   /api/tt-req/send              — gửi one-off
+POST   /api/tt-req/parse-curl        — curl → request</code></pre>
+    </div>
+  </section>
+</main>
+
+<!-- ================= JOB EDITOR (modal) ================= -->
+<div id="editor-overlay" class="overlay hidden">
+  <div class="editor panel">
+    <div class="editor-head">
+      <span class="prompt">›</span> <input id="e-name" class="input name-input mono" placeholder="job name">
+      <button class="btn btn-ghost" id="editor-close">✕</button>
+    </div>
+    <div class="editor-body">
+      <div class="editor-side">
+        <div class="panel">
+          <div class="panel-title">schedule</div>
+          <label class="field"><span>interval</span>
+            <div class="row gap">
+              <input id="e-interval" type="number" min="0" class="input" style="width:110px">
+              <span class="muted">giây (0 = chỉ chạy tay)</span>
+            </div>
+          </label>
+          <label class="chk"><input type="checkbox" id="e-enabled" checked> schedule chạy liên tục</label>
+          <label class="chk"><input type="checkbox" id="e-stoponfail" checked> dừng khi 1 step fail</label>
+        </div>
+        <div class="panel">
+          <div class="panel-title">variables <span class="muted">— used as {{name}}</span></div>
+          <div id="e-variables"></div>
+          <button class="btn btn-ghost sm" id="e-add-var">+ variable</button>
+        </div>
+        <div class="meta-time muted" id="e-meta"></div>
+      </div>
+      <div class="editor-steps">
+        <div class="steps-head">
+          <span class="panel-title">steps <span class="muted">— chạy tuần tự, assert pass mới qua step sau</span></span>
+          <button class="btn sm" id="e-add-step">+ step</button>
+        </div>
+        <div id="e-steps"></div>
+      </div>
+    </div>
+    <div class="editor-foot">
+      <span class="muted" id="editor-msg"></span>
+      <div class="row gap">
+        <button class="btn" id="editor-cancel">cancel</button>
+        <button class="btn btn-primary" id="editor-save">💾 save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= RUN DETAIL (modal) ================= -->
+<div id="run-overlay" class="overlay hidden">
+  <div class="run-detail panel">
+    <div class="editor-head">
+      <span class="prompt">›</span> run detail
+      <button class="btn btn-ghost" id="run-close">✕</button>
+    </div>
+    <div class="run-body" id="run-body"></div>
+  </div>
+</div>
+
+<script src="/tt-req/app.js"></script>
+</body>
+</html>
