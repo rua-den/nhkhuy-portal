@@ -25,7 +25,7 @@ const server=http.createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://localhost'),pathname=url.pathname;
   if(req.method==='GET'&&pathname==='/api/health')return send(res,200,{status:'ok',service:'nhkhuy-portal',database:'ok'});
-  if(req.method==='GET'&&pathname==='/api/services')return send(res,200,listServices());
+  if(req.method==='GET'&&pathname==='/api/services'){const user=auth.userFor(req);if(!user)return send(res,401,{error:'Authentication required.'});return send(res,200,listServices())}
   if(req.method==='GET'&&pathname==='/api/auth/status')return send(res,200,{setupRequired:!auth.bootstrapExists()});
   if(req.method==='POST'&&pathname==='/api/auth/login'){
    if(!sameOrigin(req))return send(res,403,{error:'Request rejected.'});
@@ -61,8 +61,10 @@ const server=http.createServer(async(req,res)=>{
    return send(res,404,{error:'Not found.'});
   }
   if(pathname.startsWith('/api/'))return send(res,404,{error:'Not found.'});
-  if(pathname==='/admin.html'&&!auth.userFor(req)){res.writeHead(302,{'location':'/login.html','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end()}
   let requested;try{requested=decodeURIComponent(pathname)}catch{return send(res,400,'Bad request.','text/plain; charset=utf-8')}
+  const currentUser=auth.userFor(req);
+  if(!currentUser&& !['/login.html','/login.js','/styles.css'].includes(requested)){res.writeHead(302,{'location':'/login.html','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end()}
+  if(currentUser&&requested==='/login.html'){res.writeHead(302,{'location':'/','cache-control':'no-store','referrer-policy':'no-referrer'});return res.end()}
   if(requested==='/')requested='/index.html';
   const file=path.resolve(PUBLIC,'.'+requested);if(file!==PUBLIC&&!file.startsWith(PUBLIC+path.sep))return send(res,403,'Forbidden.','text/plain; charset=utf-8');
   fs.readFile(file,(error,data)=>{if(error)return send(res,404,'Not found.','text/plain; charset=utf-8');const ext=path.extname(file),types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};send(res,200,data,types[ext]||'application/octet-stream',{'cache-control':ext==='.html'?'no-cache':'public, max-age=3600'})});

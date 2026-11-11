@@ -5,7 +5,7 @@ Personal portal and initial service registry for `nhkhuy.run.place`.
 ## v0.1 scope
 
 - Responsive terminal-style (TUI-inspired) web console.
-- Public read-only service listing.
+- Private owner-only portal and service listing.
 - SQLite service registry with a one-time, metadata-preserving JSON import.
 - Single-owner login and session-protected admin console.
 - systemd deployment template for Oracle Linux/Ubuntu ARM64.
@@ -23,7 +23,7 @@ They are listed as `managedProxy: false`; existing routing stays under current C
 ## Architecture
 
 Browser -> existing Caddy HTTPS -> portal on `127.0.0.1:4189`.
-Portal -> `/api/services` -> SQLite service registry.
+Authenticated owner -> `/` -> private portal -> `/api/services` -> SQLite service registry.
 Owner -> `/login.html` -> opaque server-side session cookie -> authenticated `/api/admin/*`.
 
 No Caddy Admin API is exposed. The service binds only to loopback.
@@ -43,7 +43,7 @@ npm run check
 PORTAL_COOKIE_SECURE=false node src/server.js
 ```
 
-Open `http://127.0.0.1:4189`. Create the owner account once with `npm run admin:bootstrap -- owner`, then sign in at `/login.html`. For local HTTP only, set `PORTAL_COOKIE_SECURE=false`; never disable Secure cookies in production.
+Open `http://127.0.0.1:4189/login.html`. All portal pages and service data require an owner session; only login assets and health/auth bootstrap endpoints are public. Create the owner account once with `npm run admin:bootstrap -- owner`, then sign in at `/login.html`. For local HTTP only, set `PORTAL_COOKIE_SECURE=false`; never disable Secure cookies in production.
 
 On the VPS, bootstrap against the shared database as the service user (after a verified staging deployment): `sudo -u nhkhuy-portal env PORTAL_DATA_DIR=/opt/nhkhuy-portal/shared/data node /opt/nhkhuy-portal/current/src/cli/bootstrap-admin.js owner`. The password is entered interactively and is not placed in shell history.
 
@@ -83,7 +83,7 @@ Wildcard DNS does not itself issue TLS certificates; Caddy obtains certificates 
 - Never expose port 4189 publicly; Caddy should proxy to loopback.
 - Keep `/etc/nhkhuy-portal/portal.env` mode 0600.
 - Bootstrap one owner account interactively with `npm run admin:bootstrap -- owner`; there is no default account or public registration.
-- Passwords use Node.js `crypto.scrypt` with a random salt. Opaque 256-bit session IDs and CSRF tokens are stored only as SHA-256 hashes. The session cookie is HttpOnly, Secure in production, SameSite=Lax and Path=/. Admin HTML and APIs require a session; state changes require CSRF and same-origin validation. Login failures are generic and throttled.
+- Passwords use Node.js `crypto.scrypt` with a random salt. Opaque 256-bit session IDs and CSRF tokens are stored only as SHA-256 hashes. The session cookie is HttpOnly, Secure in production, SameSite=Lax and Path=/. All portal HTML and service APIs require a session; state changes require CSRF and same-origin validation. Login failures are generic and throttled.
 - Registration accepts only a local port, not arbitrary upstream URLs.
 - New service metadata is not equivalent to a working reverse-proxy route yet.
 - No DNS provider API credentials are stored by this app.

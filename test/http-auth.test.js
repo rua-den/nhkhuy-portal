@@ -12,18 +12,23 @@ test('HTTP auth flow protects admin APIs and enforces CSRF',async t=>{
   for(let i=0;i<50;i++){if(child.exitCode!==null)throw new Error('Portal exited: '+logs);try{const r=await fetch(base+'/api/health');if(r.ok){ready=true;break}}catch{}await new Promise(r=>setTimeout(r,100))}
   assert.equal(ready,true,'server did not become ready: '+logs);
   const denied=await fetch(base+'/api/admin/services');assert.equal(denied.status,401);
+  const privateApi=await fetch(base+'/api/services');assert.equal(privateApi.status,401);
+  for(const route of ['/','/index.html','/app.js','/admin.html']){const response=await fetch(base+route,{redirect:'manual'});assert.equal(response.status,302,route+' must be private');assert.equal(response.headers.get('location'),'/login.html')}
+  const loginPage=await fetch(base+'/login.html');assert.equal(loginPage.status,200);
+  const loginScript=await fetch(base+'/login.js');assert.equal(loginScript.status,200);
+  const stylesheet=await fetch(base+'/styles.css');assert.equal(stylesheet.status,200);
   const badOrigin=await fetch(base+'/api/auth/login',{method:'POST',headers:{origin:'https://attacker.invalid','content-type':'application/json'},body:JSON.stringify({username:'owner',password:'integration-password-123'})});assert.equal(badOrigin.status,403);
-  const publicList=await fetch(base+'/api/services');assert.equal(publicList.status,200);assert.ok((await publicList.json()).length>=2);
-  const pageDenied=await fetch(base+'/admin.html',{redirect:'manual'});assert.equal(pageDenied.status,302);assert.equal(pageDenied.headers.get('location'),'/login.html');
+  
   const login=await fetch(base+'/api/auth/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:'owner',password:'integration-password-123'})});
   assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];assert.match(login.headers.get('set-cookie'),/HttpOnly/);assert.match(login.headers.get('set-cookie'),/SameSite=Lax/);
   const me=await fetch(base+'/api/auth/me',{headers:{cookie}});assert.equal(me.status,200);const session=await me.json();assert.equal(session.user.username,'owner');
-  const pageAllowed=await fetch(base+'/admin.html',{headers:{cookie},redirect:'manual'});assert.equal(pageAllowed.status,200);
+  const pageAllowed=await fetch(base+'/',{headers:{cookie},redirect:'manual'});assert.equal(pageAllowed.status,200);
+  const loginWhileAuthenticated=await fetch(base+'/login.html',{headers:{cookie},redirect:'manual'});assert.equal(loginWhileAuthenticated.status,302);assert.equal(loginWhileAuthenticated.headers.get('location'),'/');
   const admin=await fetch(base+'/api/admin/services',{headers:{cookie}});assert.equal(admin.status,200);const registry=await admin.json();assert.ok(registry.services.length>=2);
   const first=registry.services[0],payload=JSON.stringify({enabled:!first.enabled});
   const noCsrf=await fetch(base+'/api/admin/services/'+first.id,{method:'PATCH',headers:{cookie,'content-type':'application/json'},body:payload});assert.equal(noCsrf.status,403);
   const changed=await fetch(base+'/api/admin/services/'+first.id,{method:'PATCH',headers:{cookie,'content-type':'application/json','x-csrf-token':session.csrfToken},body:payload});assert.equal(changed.status,200);
-  const publicAfter=await fetch(base+'/api/services');assert.equal((await publicAfter.json()).some(service=>service.id===first.id),!first.enabled);
+  const privateAfter=await fetch(base+'/api/services',{headers:{cookie}});assert.equal(privateAfter.status,200);assert.equal((await privateAfter.json()).some(service=>service.id===first.id),!first.enabled);
   const partial=await fetch(base+'/api/admin/services/'+first.id,{method:'PATCH',headers:{cookie,'content-type':'application/json','x-csrf-token':session.csrfToken},body:JSON.stringify({name:'Updated test name'})});assert.equal(partial.status,200);assert.equal((await partial.json()).service.enabled,!first.enabled);
   const logout=await fetch(base+'/api/auth/logout',{method:'POST',headers:{cookie,'x-csrf-token':session.csrfToken}});assert.equal(logout.status,204);
   const expired=await fetch(base+'/api/admin/services',{headers:{cookie}});assert.equal(expired.status,401);
