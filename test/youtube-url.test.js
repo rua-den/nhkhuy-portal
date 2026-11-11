@@ -1,0 +1,3 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{youtubeVideoId}=require('../public/youtube-url');
+test('youtubeVideoId accepts supported links and rejects unsafe or malformed URLs',()=>{const id='dQw4w9WgXcQ';for(const value of [`https://www.youtube.com/watch?v=${id}`,`https://youtu.be/${id}`,`https://youtube.com/shorts/${id}`,`https://www.youtube.com/embed/${id}`])assert.equal(youtubeVideoId(value),id);for(const value of ['https://example.com/watch?v='+id,'javascript:alert(1)','https://www.youtube.com/watch?v=short','https://www.youtube.com/watch?v='+id+'x'])assert.equal(youtubeVideoId(value),null)});
