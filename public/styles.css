@@ -20,3 +20,4 @@ body{font-size:16px;line-height:1.75}
 @media(max-width:650px){body{font-size:16px}.top-status{font-size:11px}.brand{font-size:13px}
 .metric-label{font-size:10px}.metric strong{font-size:14px}.service-main strong{font-size:15px}
 .service-main small{font-size:13px}.info-panel>div{font-size:12px}footer{font-size:10px}}
+.saved-section{margin-top:28px}.saved-list{border:1px solid var(--line);background:rgba(9,16,12,.65)}.saved-row{display:flex;gap:10px;padding:10px;border-bottom:1px solid #17291d}.saved-row:last-child{border-bottom:0}.saved-link{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;border:0;background:none;color:var(--cyan);font:inherit;cursor:pointer}.saved-link:hover{text-decoration:underline}.saved-remove{border:1px solid var(--line2);background:#101b15;color:var(--muted);font:inherit;font-size:11px;padding:4px 8px;cursor:pointer}.saved-remove:hover{border-color:var(--amber);color:var(--amber)}
