@@ -53,7 +53,8 @@ The admin API requires an authenticated session cookie. State-changing requests 
 
 - Uses the existing owner session and CSRF token; no extra listener or port is opened.
 - Request/job data is stored in `PORTAL_DATA_DIR/tt-req.json` with mode `0600`; do not commit runtime data or exported credentials.
-- Supports one-off HTTP requests, cURL parsing, multi-step scheduled jobs, assertions, response extraction, run history, and job controls.
+- Supports one-off HTTP requests, cURL parsing, JSON job import with preview, multi-step scheduled jobs, assertions, response extraction, run history, and job controls.
+- JSON import accepts a `jobs` array, skips invalid/unsupported entries, strips recognized credential headers/fields, and always imports jobs paused. Files are limited to 32 KiB and the 30-job capacity limit still applies. Review every preview before confirming; do not import secrets or automation for artificial engagement.
 - Outbound destinations are limited to public HTTP(S) hosts on ports 80/443. DNS answers are checked and pinned for the request; loopback, private, link-local, reserved and metadata ranges are rejected. Redirects are not followed. Request bodies are capped at 32 KiB, responses at 1 MiB, at most four outbound requests run concurrently, and request timeout is 12 seconds.
 - Scheduled intervals must be at least 60 seconds. Up to 30 jobs and 12 steps per job are supported. Run history is in memory and resets on process restart.
 - ZIP-supplied job data is deliberately not imported: it contained embedded credentials. Create clean jobs after rotating any exposed credentials.
