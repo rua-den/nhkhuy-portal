@@ -13,6 +13,8 @@ test('HTTP auth flow protects admin APIs and enforces CSRF',async t=>{
   assert.equal(ready,true,'server did not become ready: '+logs);
   const denied=await fetch(base+'/api/admin/services');assert.equal(denied.status,401);
   const privateApi=await fetch(base+'/api/services');assert.equal(privateApi.status,401);
+  const ttReqApiDenied=await fetch(base+'/api/tt-req/jobs');assert.equal(ttReqApiDenied.status,401);
+  const ttReqPageDenied=await fetch(base+'/tt-req/',{redirect:'manual'});assert.equal(ttReqPageDenied.status,302);assert.equal(ttReqPageDenied.headers.get('location'),'/login.html');
   for(const route of ['/','/index.html','/app.js','/admin.html']){const response=await fetch(base+route,{redirect:'manual'});assert.equal(response.status,302,route+' must be private');assert.equal(response.headers.get('location'),'/login.html')}
   const loginPage=await fetch(base+'/login.html');assert.equal(loginPage.status,200);
   const loginScript=await fetch(base+'/login.js');assert.equal(loginScript.status,200);
@@ -23,6 +25,14 @@ test('HTTP auth flow protects admin APIs and enforces CSRF',async t=>{
   assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];assert.match(login.headers.get('set-cookie'),/HttpOnly/);assert.match(login.headers.get('set-cookie'),/SameSite=Lax/);
   const me=await fetch(base+'/api/auth/me',{headers:{cookie}});assert.equal(me.status,200);const session=await me.json();assert.equal(session.user.username,'owner');
   const pageAllowed=await fetch(base+'/',{headers:{cookie},redirect:'manual'});assert.equal(pageAllowed.status,200);
+  const ttReqPage=await fetch(base+'/tt-req/',{headers:{cookie}});assert.equal(ttReqPage.status,200);assert.match(await ttReqPage.text(),/HTTP_WORKBENCH/);
+  const ttReqAsset=await fetch(base+'/tt-req/app.js',{headers:{cookie}});assert.equal(ttReqAsset.status,200);
+  const ttReqJobsDenied=await fetch(base+'/api/tt-req/jobs',{headers:{cookie,origin:'https://attacker.invalid'}});assert.equal(ttReqJobsDenied.status,403);
+  const ttReqNoCsrf=await fetch(base+'/api/tt-req/jobs',{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({name:'no csrf'})});assert.equal(ttReqNoCsrf.status,403);
+  const ttReqJobs=await fetch(base+'/api/tt-req/jobs',{headers:{cookie}});assert.equal(ttReqJobs.status,200);assert.deepEqual(await ttReqJobs.json(),[]);
+  const ttReqParse=await fetch(base+'/api/tt-req/parse-curl',{method:'POST',headers:{cookie,'content-type':'application/json','x-csrf-token':session.csrfToken},body:JSON.stringify({curl:'curl https://example.com -X POST -H \'Content-Type: application/json\' -d \'{}\''})});assert.equal(ttReqParse.status,200);assert.equal((await ttReqParse.json()).request.method,'POST');
+  const ttReqSend=await fetch(base+'/api/tt-req/send',{method:'POST',headers:{cookie,'content-type':'application/json','x-csrf-token':session.csrfToken},body:JSON.stringify({method:'GET',url:'http://127.0.0.1/api/health'})});assert.equal(ttReqSend.status,200);assert.match((await ttReqSend.json()).result.error,/non-public/);
+  const ttReqCreate=await fetch(base+'/api/tt-req/jobs',{method:'POST',headers:{cookie,'content-type':'application/json','x-csrf-token':session.csrfToken},body:JSON.stringify({name:'integration job',enabled:false,intervalSec:0,steps:[{method:'GET',url:'https://example.com'}]})});assert.equal(ttReqCreate.status,201);
   const loginWhileAuthenticated=await fetch(base+'/login.html',{headers:{cookie},redirect:'manual'});assert.equal(loginWhileAuthenticated.status,302);assert.equal(loginWhileAuthenticated.headers.get('location'),'/');
   const admin=await fetch(base+'/api/admin/services',{headers:{cookie}});assert.equal(admin.status,200);const registry=await admin.json();assert.ok(registry.services.length>=2);
   const first=registry.services[0],payload=JSON.stringify({enabled:!first.enabled});
