@@ -1,6 +1,6 @@
 'use strict';
 let csrf='',editingId='',cachedJobs=[];const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const ready=fetch('/api/auth/me',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();csrf=(await r.json()).csrfToken;if(!csrf)throw Error();}).catch(()=>{location.href='/login.html';throw Error('Owner login required');});
+const ready=fetch('/api/auth/me',{cache:'no-store'}).then(async r=>{if(!r.ok)throw Error();csrf=(await r.json()).csrfToken;if(!csrf)throw Error();}).catch(()=>{location.href='/login.html';});
 async function api(method,url,data){await ready;const r=await fetch(url,{method,headers:{'Content-Type':'application/json',...(method==='GET'?{}:{'X-CSRF-Token':csrf})},body:data===undefined?undefined:JSON.stringify(data),cache:'no-store'});const x=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401)location.href='/login.html';throw Error(x.error||'Request failed: '+r.status);}return x;}
 function note(msg){let n=$('#notice');if(!n){n=document.createElement('div');n.id='notice';document.body.append(n);}n.textContent=msg;n.classList.add('show');setTimeout(()=>n.classList.remove('show'),2600);}
 function showTab(name){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===name));if(name!=='send')refresh();}
