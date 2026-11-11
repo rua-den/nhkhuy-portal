@@ -4,37 +4,38 @@ _Last updated: 2026-11-11_
 
 ## Repository
 
-- Main: `78a80a60b2b49ca44f04c3e7939d21ad9ef1fc12`
-- Authentication: PR [#3](https://github.com/rua-den/nhkhuy-portal/pull/3) merged (squash)
-- Working branch: `docs/portal-auth-status-after-auth-merge` (status synchronization)
+- Main: `95db390b91d9ba6727e0c2c9860055693c3fe74f`
+- Authentication: PR [#3](https://github.com/rua-den/nhkhuy-portal/pull/3) merged.
+- Private owner-only route/UI: PR [#5](https://github.com/rua-den/nhkhuy-portal/pull/5) merged.
+- Private HTTP workbench: PR [#7](https://github.com/rua-den/nhkhuy-portal/pull/7) merged.
 - Production: https://nhkhuy.run.place
 
 ## Delivery status
 
 | Area | Status | Evidence |
 |---|---|---|
-| Production deployment | Auth-enabled release deployed | GitHub Actions run [#42946588667](https://github.com/rua-den/nhkhuy-portal/actions/runs/42946588667) succeeded on main SHA `78a80a6` |
+| Production deployment | Existing auth-enabled release remains deployed; TT-REQ not deployed | Successful production workflow [#42948430100](https://github.com/rua-den/nhkhuy-portal/actions/runs/42948430100) deployed main SHA `5037ce4`; PR #7 merge is newer |
 | Architecture ADR | Accepted | ADR-0001 |
-| Repository/deploy inspection | Complete | Deployment scripts, systemd unit, CI reviewed |
-| SQLite runtime | Verified | Node 22.23.2 built-in node:sqlite; x64 + ARM64 CI passed |
-| Backend persistence | Implemented on main | SQLite schema, migrations, idempotent JSON import |
-| Backend/auth | Merged; CI passed | Owner bootstrap, scrypt, opaque sessions, cookie, CSRF, IP-based throttling, audit events, protected service API |
-| Frontend/admin | Basic static UI merged; Vue migration pending | Private owner-only portal, login page, authenticated admin console |
-| CI | Passed on merged main commit | Unit/integration tests, HTTP smoke test, x64 + ARM64 SQLite runtime |
-| Staging | Not started | No staging release/port/data directory created |
-| Production private-route update | Pending PR #5 | Owner-only route/API gate and larger typography are implemented on feature branch; not yet deployed |
-| Private HTTP workbench | Implemented on feature branch | `/tt-req/`, owner/CSRF-protected API, JSON persistence, cURL parser, scheduled multi-step requests, SSRF protections and integration tests; CI pending |
+| SQLite runtime | Verified | Node 22 built-in SQLite; x64 + ARM64 CI |
+| Backend persistence | Implemented on main | SQLite schema, migrations, idempotent legacy JSON import |
+| Backend/auth | Merged and deployed | Owner bootstrap, scrypt, opaque sessions, secure cookie, CSRF, login throttling, audit events |
+| Private portal UI | Merged | Owner-only dashboard and admin console |
+| Private HTTP workbench | Merged; production deployment pending | PR #7; owner/CSRF-protected `/tt-req/`, cURL parser, multi-step jobs, assertions, extraction, scheduler, history |
+| SSRF protections | Implemented and CI-verified | Public DNS/IP validation with pinned lookup, private/reserved IPv4/IPv6 rejection, HTTP(S) standard ports, no redirects, bounded requests/responses |
+| CI | Passed on merged main | Main SHA `95db390b91d9ba6727e0c2c9860055693c3fe74f`; x64 + ARM64 runtime and HTTP integration tests green |
+| Staging | Not started | No isolated staging release, port, or data directory has been created |
 
 ## Findings
 
-- The v2 authentication implementation is merged and deployed to production. Owner account bootstrap/login verification is a separate operational step.
-- Production data path is `/opt/nhkhuy-portal/shared/data`. Git's `config/services.json` is only a seed; production contents must be backed up and inspected before migration.
-- The production deploy workflow now requires a manual dispatch on `main` and both `CD_ENABLED=true` and `PROD_CUTOVER_ENABLED=true`. Keep the latter unset/false until staging and rollback checks pass.
-- Current deploy packaging and health checks still follow the v0.1 release contract; staging needs its own release, loopback port, and data directory.
-- No production data, Caddy configuration, Wedding Online, or 9Router resources were changed.
+- PR #7 adds the workbench to the existing Portal process; it does not open a new listener or change Caddy.
+- Runtime job definitions are stored in `PORTAL_DATA_DIR/tt-req.json` with mode `0600`. They are not committed to Git.
+- The uploaded ZIP's job data was not imported because it contained embedded credentials. Rotate/revoke any credentials exposed in that archive before creating clean jobs.
+- Production is still on the pre-workbench release at main SHA `5037ce4`. The post-merge `Deploy Portal` push run completed its preflight successfully but skipped the deploy job by design; production has not been changed by PR #7.
+- Production deployment requires the manual workflow dispatch and both `CD_ENABLED=true` and `PROD_CUTOVER_ENABLED=true`. Do not dispatch until a separate staging release and rollback have been verified.
+- No production data, Caddy configuration, Wedding Online, or 9Router resources were changed for this feature.
 
 ## Next
 
-1. Merge PR #7 only after CI and security review pass; then deploy through the gated `main` workflow after staging/rollback readiness.
-2. Verify `/tt-req/` with the owner account and confirm `tt-req.json` is created under the shared data directory with mode `0600`.
-3. Rotate/revoke any credentials exposed in the uploaded ZIP; its job data was intentionally not imported.
+1. Create an isolated staging release with a separate loopback port and data directory; inspect the current deploy script and preserve production data.
+2. Verify ARM64 runtime, owner login, CSRF, workbench APIs, outbound SSRF controls, job persistence, resource usage, and rollback on staging.
+3. Only after staging passes, manually dispatch the production workflow on `main`, then verify `/tt-req/` and rollback readiness.
