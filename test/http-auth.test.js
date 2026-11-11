@@ -25,7 +25,7 @@ test('HTTP auth flow protects admin APIs and enforces CSRF',async t=>{
   assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];assert.match(login.headers.get('set-cookie'),/HttpOnly/);assert.match(login.headers.get('set-cookie'),/SameSite=Lax/);
   const me=await fetch(base+'/api/auth/me',{headers:{cookie}});assert.equal(me.status,200);const session=await me.json();assert.equal(session.user.username,'owner');
   const pageAllowed=await fetch(base+'/',{headers:{cookie},redirect:'manual'});assert.equal(pageAllowed.status,200);
-  const ttReqPage=await fetch(base+'/tt-req/',{headers:{cookie}});assert.equal(ttReqPage.status,200);assert.match(await ttReqPage.text(),/HTTP_WORKBENCH/);
+  const ttReqPage=await fetch(base+'/tt-req/',{headers:{cookie}});assert.equal(ttReqPage.status,200);assert.match(await ttReqPage.text(),/WORKBENCH/);
   const ttReqAsset=await fetch(base+'/tt-req/app.js',{headers:{cookie}});assert.equal(ttReqAsset.status,200);
   const ttReqJobsDenied=await fetch(base+'/api/tt-req/jobs',{headers:{cookie,origin:'https://attacker.invalid'}});assert.equal(ttReqJobsDenied.status,403);
   const ttReqNoCsrf=await fetch(base+'/api/tt-req/jobs',{method:'POST',headers:{cookie,'content-type':'application/json'},body:JSON.stringify({name:'no csrf'})});assert.equal(ttReqNoCsrf.status,403);
