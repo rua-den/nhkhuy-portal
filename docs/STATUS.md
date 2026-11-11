@@ -38,5 +38,5 @@ _Last updated: 2026-11-11_
 ## Next
 
 1. Create an isolated staging release with a separate loopback port and data directory; inspect the current deploy script and preserve production data.
-3. Verify ARM64 runtime, owner login, CSRF, workbench APIs, outbound SSRF controls, job persistence, resource usage, and rollback on staging.
-4. Only after staging passes, manually dispatch the production workflow on `main`, then verify `/tt-req/` and rollback readiness.
+2. Verify ARM64 runtime, owner login, CSRF, workbench APIs, outbound SSRF controls, job persistence, resource usage, and rollback on staging.
+3. Only after staging passes, manually dispatch the production workflow on `main`, then verify `/tt-req/` and rollback readiness.
