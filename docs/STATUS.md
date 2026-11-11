@@ -23,6 +23,7 @@ _Last updated: 2026-11-11_
 | CI | Passed on merged main commit | Unit/integration tests, HTTP smoke test, x64 + ARM64 SQLite runtime |
 | Staging | Not started | No staging release/port/data directory created |
 | Production private-route update | Pending PR #5 | Owner-only route/API gate and larger typography are implemented on feature branch; not yet deployed |
+| Private HTTP workbench | Implemented on feature branch | `/tt-req/`, owner/CSRF-protected API, JSON persistence, cURL parser, scheduled multi-step requests, SSRF protections and integration tests; CI pending |
 
 ## Findings
 
@@ -34,6 +35,6 @@ _Last updated: 2026-11-11_
 
 ## Next
 
-1. Merge PR #5 after CI passes; then verify production login and owner-only access.
-2. Confirm the owner account is bootstrapped in the production SQLite database.
-3. Continue Vue 3 migration, account settings, and audit viewer separately.
+1. Merge PR #7 only after CI and security review pass; then deploy through the gated `main` workflow after staging/rollback readiness.
+2. Verify `/tt-req/` with the owner account and confirm `tt-req.json` is created under the shared data directory with mode `0600`.
+3. Rotate/revoke any credentials exposed in the uploaded ZIP; its job data was intentionally not imported.

@@ -5,7 +5,7 @@
   "description": "Personal portal and service registry for nhkhuy.run.place",
   "scripts": {
     "start": "node src/server.js",
-    "check": "node --check src/server.js && node --check src/db/database.js && node --check src/db/import-legacy-services.js && node --check src/auth/service.js && node --check src/auth/password.js && node --check src/cli/migrate.js && node --check src/cli/bootstrap-admin.js && node --check public/app.js && node --check public/login.js && node --check public/admin.js",
+    "check": "node --check src/server.js && node --check src/tt-req/service.js && node --check src/db/database.js && node --check src/db/import-legacy-services.js && node --check src/auth/service.js && node --check src/auth/password.js && node --check src/cli/migrate.js && node --check src/cli/bootstrap-admin.js && node --check public/app.js && node --check public/tt-req/app.js && node --check public/login.js && node --check public/admin.js",
     "test": "node --test",
     "migrate": "node src/cli/migrate.js",
     "admin:bootstrap": "node src/cli/bootstrap-admin.js"
