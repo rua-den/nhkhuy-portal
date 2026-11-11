@@ -24,7 +24,7 @@ They are listed as `managedProxy: false`; existing routing stays under current C
 
 Browser -> existing Caddy HTTPS -> portal on `127.0.0.1:4189`.
 Authenticated owner -> `/` -> private portal -> `/api/services` -> SQLite service registry.
-Owner -> `/login.html` -> opaque server-side session cookie -> authenticated `/api/admin/*`.
+Owner -> `/login.html` -> opaque server-side session cookie -> authenticated `/api/admin/*` and `/tt-req/` HTTP workbench.
 
 No Caddy Admin API is exposed. The service binds only to loopback.
 
@@ -48,6 +48,15 @@ Open `http://127.0.0.1:4189/login.html`. All portal pages and service data requi
 On the VPS, bootstrap against the shared database as the service user (after a verified staging deployment): `sudo -u nhkhuy-portal env PORTAL_DATA_DIR=/opt/nhkhuy-portal/shared/data node /opt/nhkhuy-portal/current/src/cli/bootstrap-admin.js owner`. The password is entered interactively and is not placed in shell history.
 
 The admin API requires an authenticated session cookie. State-changing requests also require the CSRF token returned by `/api/auth/me` in the `X-CSRF-Token` header. No bearer token is exposed to browser code.
+
+## Private HTTP workbench (`/tt-req/`)
+
+- Uses the existing owner session and CSRF token; no extra listener or port is opened.
+- Request/job data is stored in `PORTAL_DATA_DIR/tt-req.json` with mode `0600`; do not commit runtime data or exported credentials.
+- Supports one-off HTTP requests, cURL parsing, multi-step scheduled jobs, assertions, response extraction, run history, and job controls.
+- Outbound destinations are limited to public HTTP(S) hosts on ports 80/443. DNS answers are checked and pinned for the request; loopback, private, link-local, reserved and metadata ranges are rejected. Redirects are not followed. Request bodies are capped at 32 KiB, responses at 1 MiB, and request timeout at 12 seconds.
+- Scheduled intervals must be at least 60 seconds. Up to 30 jobs and 12 steps per job are supported. Run history is in memory and resets on process restart.
+- ZIP-supplied job data is deliberately not imported: it contained embedded credentials. Create clean jobs after rotating any exposed credentials.
 
 ## Deployment outline
 
