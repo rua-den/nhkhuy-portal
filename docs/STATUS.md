@@ -19,7 +19,7 @@ _Last updated: 2026-11-11_
 | SQLite runtime | Verified | Node 22.23.2 built-in node:sqlite; x64 + ARM64 CI passed |
 | Backend persistence | Implemented on main | SQLite schema, migrations, idempotent JSON import |
 | Backend/auth | Merged; CI passed | Owner bootstrap, scrypt, opaque sessions, cookie, CSRF, IP-based throttling, audit events, protected service API |
-| Frontend/admin | Basic static UI merged; Vue migration pending | Public home, login page, authenticated admin console |
+| Frontend/admin | Basic static UI merged; Vue migration pending | Private owner-only portal, login page, authenticated admin console |
 | CI | Passed on merged main commit | Unit/integration tests, HTTP smoke test, x64 + ARM64 SQLite runtime |
 | Staging | Not started | No staging release/port/data directory created |
 | Production cutover | Not deployed | Production deploy job was skipped; explicit manual dispatch and cutover gate required |
