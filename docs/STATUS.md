@@ -8,6 +8,7 @@ _Last updated: 2026-11-11_
 - Authentication: PR [#3](https://github.com/rua-den/nhkhuy-portal/pull/3) merged.
 - Private owner-only route/UI: PR [#5](https://github.com/rua-den/nhkhuy-portal/pull/5) merged.
 - Private HTTP workbench: PR [#7](https://github.com/rua-den/nhkhuy-portal/pull/7) merged.
+- TT-REQ JSON import: implementation in progress on `feat/tt-req-json-import`; preview, credential scrubbing, unsupported-workflow filtering, paused-by-default import.
 - Production: https://nhkhuy.run.place
 
 ## Delivery status
@@ -36,6 +37,8 @@ _Last updated: 2026-11-11_
 
 ## Next
 
+1. Merge the TT-REQ JSON importer after CI and review pass; it does not import the ZIP's TikTok view-purchase jobs.
+2. 
 1. Create an isolated staging release with a separate loopback port and data directory; inspect the current deploy script and preserve production data.
-2. Verify ARM64 runtime, owner login, CSRF, workbench APIs, outbound SSRF controls, job persistence, resource usage, and rollback on staging.
-3. Only after staging passes, manually dispatch the production workflow on `main`, then verify `/tt-req/` and rollback readiness.
+3. Verify ARM64 runtime, owner login, CSRF, workbench APIs, outbound SSRF controls, job persistence, resource usage, and rollback on staging.
+4. Only after staging passes, manually dispatch the production workflow on `main`, then verify `/tt-req/` and rollback readiness.
