@@ -4,11 +4,11 @@ _Last updated: 2026-11-11_
 
 ## Repository
 
-- Main: `95db390b91d9ba6727e0c2c9860055693c3fe74f`
+- Main: `52ff549ac0bcb712532040fc5e59419e6533e930`
 - Authentication: PR [#3](https://github.com/rua-den/nhkhuy-portal/pull/3) merged.
 - Private owner-only route/UI: PR [#5](https://github.com/rua-den/nhkhuy-portal/pull/5) merged.
 - Private HTTP workbench: PR [#7](https://github.com/rua-den/nhkhuy-portal/pull/7) merged.
-- TT-REQ JSON import: implementation in progress on `feat/tt-req-json-import`; preview, credential scrubbing, unsupported-workflow filtering, paused-by-default import.
+- TT-REQ JSON import: PR [#9](https://github.com/rua-den/nhkhuy-portal/pull/9) merged; preview, validation, credential scrubbing, unsupported-workflow filtering, paused-by-default import.
 - Production: https://nhkhuy.run.place
 
 ## Delivery status
@@ -21,9 +21,9 @@ _Last updated: 2026-11-11_
 | Backend persistence | Implemented on main | SQLite schema, migrations, idempotent legacy JSON import |
 | Backend/auth | Merged and deployed | Owner bootstrap, scrypt, opaque sessions, secure cookie, CSRF, login throttling, audit events |
 | Private portal UI | Merged | Owner-only dashboard and admin console |
-| Private HTTP workbench | Merged; production deployment pending | PR #7; owner/CSRF-protected `/tt-req/`, cURL parser, multi-step jobs, assertions, extraction, scheduler, history |
+| Private HTTP workbench + JSON import | Merged; production deployment pending | PRs #7 and #9; owner/CSRF-protected `/tt-req/`, JSON preview/import, credential scrubbing, paused-by-default jobs; CI run [#42958046614](https://github.com/rua-den/nhkhuy-portal/actions/runs/42958046614) green on x64 + ARM64 |
 | SSRF protections | Implemented and CI-verified | Public DNS/IP validation with pinned lookup, private/reserved IPv4/IPv6 rejection, HTTP(S) standard ports, no redirects, bounded requests/responses |
-| CI | Passed on merged main | Main SHA `95db390b91d9ba6727e0c2c9860055693c3fe74f`; x64 + ARM64 runtime and HTTP integration tests green |
+| CI | Passed for PR #9 | Run [#42958046614](https://github.com/rua-den/nhkhuy-portal/actions/runs/42958046614); syntax, 14 tests, HTTP smoke, x64 + ARM64 runtime green |
 | Staging | Not started | No isolated staging release, port, or data directory has been created |
 
 ## Findings
@@ -37,8 +37,6 @@ _Last updated: 2026-11-11_
 
 ## Next
 
-1. Merge the TT-REQ JSON importer after CI and review pass; it does not import the ZIP's TikTok view-purchase jobs.
-2. 
 1. Create an isolated staging release with a separate loopback port and data directory; inspect the current deploy script and preserve production data.
 3. Verify ARM64 runtime, owner login, CSRF, workbench APIs, outbound SSRF controls, job persistence, resource usage, and rollback on staging.
 4. Only after staging passes, manually dispatch the production workflow on `main`, then verify `/tt-req/` and rollback readiness.
