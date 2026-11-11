@@ -35,10 +35,6 @@ _Last updated: 2026-11-11_
 
 ## Next
 
-1. Review and merge the private HTTP workbench PR after CI and security checks pass; deploy only through the gated main workflow.
-2. Verify `/tt-req/` with owner login and confirm runtime data is created under the shared data directory.
-3. Keep the original ZIP credentials out of Git; rotate/revoke any credential values that were exposed in the archive.
-
-1. Merge PR #5 after CI passes; then verify production login and owner-only access.
-2. Confirm the owner account is bootstrapped in the production SQLite database.
-3. Continue Vue 3 migration, account settings, and audit viewer separately.
+1. Merge PR #7 only after CI and security review pass; then deploy through the gated `main` workflow after staging/rollback readiness.
+2. Verify `/tt-req/` with the owner account and confirm `tt-req.json` is created under the shared data directory with mode `0600`.
+3. Rotate/revoke any credentials exposed in the uploaded ZIP; its job data was intentionally not imported.
