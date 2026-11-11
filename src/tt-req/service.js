@@ -52,10 +52,9 @@ function prepareImport(payload,currentCount){
     step.headers=clean;
     if(Array.isArray(step.formFields))step.formFields=step.formFields.filter(f=>!SENSITIVE_KEY.test(String(f.k||'')));
     if(typeof step.body==='string'&&step.body.length){
-     try{const parsed=JSON.parse(step.body),scrubbed=scrubObject(parsed);if(JSON.stringify(scrubbed)!==JSON.stringify(parsed)){step.body=JSON.stringify(scrubbed);warnings.push('Sensitive JSON body fields were removed.');}}catch{if(/(?:bearer\s+\S+|(?:api[-_]?)?(?:token|secret|password|session(?:id)?|cookie|authorization|csrf[-_]?token|client[-_]?secret|access[-_]?key)\s*[:=])/i.test(step.body))throw Error('Body appears to contain embedded credentials; remove them before importing.');}
+     try{JSON.parse(step.body);}catch{if(/(?:bearer\s+\S+|(?:api[-_]?)?(?:token|secret|password|session(?:id)?|cookie|authorization|csrf[-_]?token|client[-_]?secret|access[-_]?key)\s*[:=])/i.test(step.body))throw Error('Body appears to contain embedded credentials; remove them before importing.');}
     }
    }
-   candidate.variables=scrubObject(candidate.variables||{});
    const clean=validate({...candidate,enabled:false});
    clean.enabled=false;
    accepted.push(clean);
