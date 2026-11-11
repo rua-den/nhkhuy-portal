@@ -23,6 +23,7 @@ _Last updated: 2026-11-11_
 | CI | Passed on merged main commit | Unit/integration tests, HTTP smoke test, x64 + ARM64 SQLite runtime |
 | Staging | Not started | No staging release/port/data directory created |
 | Production private-route update | Pending PR #5 | Owner-only route/API gate and larger typography are implemented on feature branch; not yet deployed |
+| Private HTTP workbench | Implemented on feature branch | `/tt-req/`, owner/CSRF-protected API, JSON persistence, cURL parser, scheduled multi-step requests, SSRF protections and integration tests; CI pending |
 
 ## Findings
 
@@ -33,6 +34,10 @@ _Last updated: 2026-11-11_
 - No production data, Caddy configuration, Wedding Online, or 9Router resources were changed.
 
 ## Next
+
+1. Review and merge the private HTTP workbench PR after CI and security checks pass; deploy only through the gated main workflow.
+2. Verify `/tt-req/` with owner login and confirm runtime data is created under the shared data directory.
+3. Keep the original ZIP credentials out of Git; rotate/revoke any credential values that were exposed in the archive.
 
 1. Merge PR #5 after CI passes; then verify production login and owner-only access.
 2. Confirm the owner account is bootstrapped in the production SQLite database.
